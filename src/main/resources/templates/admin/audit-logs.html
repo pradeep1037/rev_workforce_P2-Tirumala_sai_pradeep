@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>Audit Logs – RevWorkforce</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" th:href="@{/css/app.css}">
+</head>
+
+<body>
+    <div class="layout">
+        <aside class="sidebar" id="sidebar">
+            <div class="sidebar-brand">
+                <h1>RevWorkforce</h1>
+                <p>Admin Panel</p>
+            </div>
+            <nav class="sidebar-nav">
+                <a class="nav-link" th:href="@{/dashboard}"><span class="icon">🏠</span>Dashboard</a>
+                <div class="nav-label" style="margin-top:8px">Administration</div>
+                <a class="nav-link" th:href="@{/admin/employees}"><span class="icon">🏢</span>Employees</a>
+                <a class="nav-link" th:href="@{/admin/departments}"><span class="icon">⚙️</span>Departments</a>
+                <a class="nav-link" th:href="@{/admin/leaves}"><span class="icon">📑</span>All Leaves</a>
+                <a class="nav-link" th:href="@{/admin/announcements}"><span class="icon">📢</span>Announcements</a>
+                <a class="nav-link active" th:href="@{/admin/audit-logs}"><span class="icon">🔍</span>Audit Logs</a>
+            </nav>
+            <div class="sidebar-footer"><button class="btn-logout" onclick="logout()">Sign Out</button></div>
+        </aside>
+        <main class="main-content">
+            <div class="topbar">
+                <div class="d-flex align-center gap-12"><button class="sidebar-toggle"
+                        onclick="toggleSidebar()">☰</button>
+                    <h2>System Audit Logs</h2>
+                </div>
+            </div>
+            <div class="page-content">
+                <div class="card">
+                    <div class="table-wrapper">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Performed By</th>
+                                    <th>Action</th>
+                                    <th>Entity</th>
+                                    <th>Entity ID</th>
+                                    <th>Timestamp</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr th:if="${#lists.isEmpty(logs)}">
+                                    <td colspan="5" style="text-align:center;color:var(--text-muted);padding:32px">No
+                                        activity logged yet.</td>
+                                </tr>
+                                <tr th:each="l : ${logs}">
+                                    <td>
+                                        <div class="fw-600" th:text="${l.performedBy?.name ?: 'System'}">-</div>
+                                        <div class="fs-xs text-muted" th:text="${l.performedBy?.email ?: ''}"></div>
+                                    </td>
+                                    <td th:text="${l.action}">-</td>
+                                    <td><span class="badge badge-draft" th:text="${l.entityType}">-</span></td>
+                                    <td th:text="${l.entityId ?: '-'}">-</td>
+                                    <td class="fs-xs text-muted" th:text="${l.actionTime}">-</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+    <script>
+        function logout() { document.cookie = 'JWT_TOKEN=;expires=Thu,01 Jan 1970'; window.location.href = '/login'; }
+        function toggleSidebar() { document.getElementById('sidebar').classList.toggle('open'); }
+    </script>
+</body>
+
+</html>

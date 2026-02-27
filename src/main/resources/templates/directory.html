@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>Employee Directory – RevWorkforce</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" th:href="@{/css/app.css}">
+</head>
+
+<body>
+    <div class="layout">
+        <aside class="sidebar" id="sidebar">
+            <div class="sidebar-brand">
+                <h1>RevWorkforce</h1>
+                <p>HR Management</p>
+            </div>
+            <nav class="sidebar-nav">
+                <a class="nav-link" th:href="@{/dashboard}"><span class="icon">🏠</span>Dashboard</a>
+                <a class="nav-link" th:href="@{/profile}"><span class="icon">👤</span>My Profile</a>
+                <a class="nav-link active" th:href="@{/directory}"><span class="icon">📋</span>Directory</a>
+                <a class="nav-link" th:href="@{/notifications}"><span class="icon">🔔</span>Notifications
+                    <span class="nav-badge" th:if="${unreadCount > 0}" th:text="${unreadCount}"></span>
+                </a>
+                <div class="nav-label" style="margin-top:8px">Leave</div>
+                <a class="nav-link" th:href="@{/leaves}"><span class="icon">📅</span>My Leaves</a>
+                <div class="nav-label" style="margin-top:8px">Performance</div>
+                <a class="nav-link" th:href="@{/performance/reviews}"><span class="icon">⭐</span>My Reviews</a>
+                <a class="nav-link" th:href="@{/performance/goals}"><span class="icon">🎯</span>My Goals</a>
+            </nav>
+            <div class="sidebar-footer"><button class="btn-logout" onclick="logout()">Sign Out</button></div>
+        </aside>
+        <main class="main-content">
+            <div class="topbar">
+                <div class="d-flex align-center gap-12">
+                    <button class="sidebar-toggle" onclick="toggleSidebar()">☰</button>
+                    <h2>Employee Directory</h2>
+                </div>
+            </div>
+            <div class="page-content">
+                <!-- SEARCH -->
+                <form th:action="@{/directory}" method="get" class="search-bar">
+                    <input type="text" name="search" class="form-control" th:value="${search}"
+                        placeholder="Search by name, email, department, designation…">
+                    <button type="submit" class="btn btn-primary">Search</button>
+                    <a th:href="@{/directory}" class="btn btn-ghost">Clear</a>
+                </form>
+
+                <!-- CARDS GRID -->
+                <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:16px">
+                    <div th:if="${#lists.isEmpty(employees)}"
+                        style="grid-column:1/-1;text-align:center;color:var(--text-muted);padding:48px 0">
+                        No employees found.
+                    </div>
+                    <div th:each="emp : ${employees}" class="card" style="padding:20px">
+                        <div style="display:flex;align-items:center;gap:12px;margin-bottom:12px">
+                            <div style="width:44px;height:44px;border-radius:50%;background:linear-gradient(135deg,var(--primary),var(--accent));display:flex;align-items:center;justify-content:center;font-weight:700;color:white;font-size:1.1rem;flex-shrink:0"
+                                th:text="${#strings.substring(emp.name,0,1)}">A</div>
+                            <div>
+                                <div class="fw-600" th:text="${emp.name}">Name</div>
+                                <div class="fs-xs text-muted" th:text="${emp.email}">email</div>
+                            </div>
+                        </div>
+                        <div style="display:flex;flex-direction:column;gap:6px">
+                            <div class="d-flex justify-between">
+                                <span class="fs-xs text-muted">Dept</span>
+                                <span class="fs-xs" th:text="${emp.departmentName ?: '-'}">-</span>
+                            </div>
+                            <div class="d-flex justify-between">
+                                <span class="fs-xs text-muted">Role</span>
+                                <span class="badge"
+                                    th:classappend="${emp.role == 'ADMIN' ? 'badge-admin' : (emp.role == 'MANAGER' ? 'badge-manager' : 'badge-employee')}"
+                                    th:text="${emp.role}">-</span>
+                            </div>
+                            <div class="d-flex justify-between">
+                                <span class="fs-xs text-muted">Manager</span>
+                                <span class="fs-xs" th:text="${emp.managerName ?: 'None'}">-</span>
+                            </div>
+                            <div class="d-flex justify-between">
+                                <span class="fs-xs text-muted">Phone</span>
+                                <span class="fs-xs" th:text="${emp.phone ?: '-'}">-</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+    <script>
+        function logout() { document.cookie = 'JWT_TOKEN=;expires=Thu,01 Jan 1970'; window.location.href = '/login'; }
+        function toggleSidebar() { document.getElementById('sidebar').classList.toggle('open'); }
+    </script>
+</body>
+
+</html>

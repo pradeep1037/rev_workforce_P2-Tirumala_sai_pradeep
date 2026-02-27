@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>My Reviews – RevWorkforce</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" th:href="@{/css/app.css}">
+</head>
+
+<body>
+    <div class="layout">
+        <aside class="sidebar" id="sidebar">
+            <div class="sidebar-brand">
+                <h1>RevWorkforce</h1>
+                <p>HR Management</p>
+            </div>
+            <nav class="sidebar-nav">
+                <a class="nav-link" th:href="@{/dashboard}"><span class="icon">🏠</span>Dashboard</a>
+                <a class="nav-link" th:href="@{/profile}"><span class="icon">👤</span>My Profile</a>
+                <div class="nav-label" style="margin-top:8px">Performance</div>
+                <a class="nav-link active" th:href="@{/performance/reviews}"><span class="icon">⭐</span>My Reviews</a>
+                <a class="nav-link" th:href="@{/performance/goals}"><span class="icon">🎯</span>My Goals</a>
+                <a class="nav-link" th:href="@{/performance/team-reviews}"><span class="icon">📊</span>Team Reviews</a>
+                <div class="nav-label" style="margin-top:8px">Leave</div>
+                <a class="nav-link" th:href="@{/leaves}"><span class="icon">📅</span>My Leaves</a>
+            </nav>
+            <div class="sidebar-footer"><button class="btn-logout" onclick="logout()">Sign Out</button></div>
+        </aside>
+        <main class="main-content">
+            <div class="topbar">
+                <div class="d-flex align-center gap-12">
+                    <button class="sidebar-toggle" onclick="toggleSidebar()">☰</button>
+                    <h2>Performance Reviews</h2>
+                </div>
+                <button class="btn btn-primary btn-sm"
+                    onclick="document.getElementById('newReviewModal').classList.add('open')">➕ New Review</button>
+            </div>
+            <div class="page-content">
+                <div class="card">
+                    <div th:if="${#lists.isEmpty(reviews)}"
+                        style="text-align:center;color:var(--text-muted);padding:48px">No reviews yet. Create your first
+                        review!</div>
+                    <div th:each="r : ${reviews}" style="padding:20px 0;border-bottom:1px solid var(--border)">
+                        <div class="d-flex justify-between align-center mb-16">
+                            <div>
+                                <div class="fw-700" style="font-size:1.1rem" th:text="${'Year ' + r.year}">Year</div>
+                                <span class="badge"
+                                    th:classappend="${r.status == 'DRAFT' ? 'badge-draft' : (r.status == 'SUBMITTED' ? 'badge-submitted' : 'badge-reviewed')}"
+                                    th:text="${r.status}">STATUS</span>
+                            </div>
+                            <div style="display:flex;gap:8px">
+                                <div style="text-align:center" th:if="${r.selfRating != null}">
+                                    <div class="fs-xs text-muted">Self Rating</div>
+                                    <div class="fw-700 text-primary" th:text="${r.selfRating + '/5'}">-</div>
+                                </div>
+                                <div style="text-align:center;padding-left:16px" th:if="${r.managerRating != null}">
+                                    <div class="fs-xs text-muted">Manager Rating</div>
+                                    <div class="fw-700 text-success" th:text="${r.managerRating + '/5'}">-</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;font-size:0.85rem">
+                            <div th:if="${r.keyDeliverables}">
+                                <div class="text-muted fs-xs mb-4">Key Deliverables</div>
+                                <div th:text="${r.keyDeliverables}">-</div>
+                            </div>
+                            <div th:if="${r.accomplishments}">
+                                <div class="text-muted fs-xs mb-4">Accomplishments</div>
+                                <div th:text="${r.accomplishments}">-</div>
+                            </div>
+                            <div th:if="${r.managerFeedback}" style="grid-column:1/-1">
+                                <div class="text-muted fs-xs mb-4">Manager Feedback</div>
+                                <div class="alert alert-info" style="margin:0" th:text="${r.managerFeedback}">-</div>
+                            </div>
+                        </div>
+                        <div style="margin-top:12px" th:if="${r.status == 'DRAFT'}">
+                            <button class="btn btn-primary btn-sm"
+                                th:onclick="'submitReview(' + ${r.reviewId} + ')'">Submit to Manager</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- New Review Modal -->
+    <div class="modal-overlay" id="newReviewModal">
+        <div class="modal">
+            <div class="modal-header">
+                <div class="modal-title">New Performance Review</div>
+                <button class="modal-close"
+                    onclick="document.getElementById('newReviewModal').classList.remove('open')">✕</button>
+            </div>
+            <div id="reviewAlert" class="alert" style="display:none"></div>
+            <div class="form-group">
+                <label class="form-label">Review Year *</label>
+                <input id="reviewYear" type="number" class="form-control"
+                    th:value="${#temporals.year(#temporals.createNow())}" min="2020" max="2030">
+            </div>
+            <div class="form-group"><label class="form-label">Key Deliverables</label><textarea id="keyDeliverables"
+                    class="form-control"></textarea></div>
+            <div class="form-group"><label class="form-label">Accomplishments</label><textarea id="accomplishments"
+                    class="form-control"></textarea></div>
+            <div class="form-group"><label class="form-label">Areas of Improvement</label><textarea
+                    id="areasOfImprovement" class="form-control"></textarea></div>
+            <div class="form-group">
+                <label class="form-label">Self Rating (1-5) *</label>
+                <input id="selfRating" type="number" class="form-control" min="1" max="5"
+                    placeholder="Rate yourself 1-5">
+            </div>
+            <div style="display:flex;gap:12px;margin-top:8px">
+                <button class="btn btn-primary" onclick="saveReview()">Save Draft</button>
+                <button class="btn btn-ghost"
+                    onclick="document.getElementById('newReviewModal').classList.remove('open')">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        async function saveReview() {
+            const body = {
+                year: parseInt(document.getElementById('reviewYear').value),
+                keyDeliverables: document.getElementById('keyDeliverables').value,
+                accomplishments: document.getElementById('accomplishments').value,
+                areasOfImprovement: document.getElementById('areasOfImprovement').value,
+                selfRating: parseInt(document.getElementById('selfRating').value)
+            };
+            const res = await fetch('/api/performance/reviews', { method: 'POST', headers: { 'Content-Type': 'application/json', ...getAuthHeaders() }, body: JSON.stringify(body) });
+            if (res.ok) { location.reload(); }
+            else { const d = await res.json(); showAlert(d.message || 'Error', 'danger'); }
+        }
+        async function submitReview(id) {
+            if (!confirm('Submit this review to your manager?')) return;
+            const res = await fetch(`/api/performance/reviews/${id}/submit`, { method: 'POST', headers: getAuthHeaders() });
+            if (res.ok) { alert('Submitted!'); location.reload(); }
+            else { const d = await res.json(); alert(d.message || 'Error'); }
+        }
+        function showAlert(msg, type) { const el = document.getElementById('reviewAlert'); el.className = 'alert alert-' + type; el.textContent = msg; el.style.display = 'block'; }
+        function getAuthHeaders() { const t = document.cookie.split(';').map(c => c.trim()).find(c => c.startsWith('JWT_TOKEN='))?.split('=')[1]; return t ? { 'Authorization': 'Bearer ' + t } : {}; }
+        function logout() { document.cookie = 'JWT_TOKEN=;expires=Thu,01 Jan 1970'; window.location.href = '/login'; }
+        function toggleSidebar() { document.getElementById('sidebar').classList.toggle('open'); }
+    </script>
+</body>
+
+</html>

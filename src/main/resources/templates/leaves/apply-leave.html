@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>Apply Leave – RevWorkforce</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" th:href="@{/css/app.css}">
+</head>
+
+<body>
+    <div class="layout">
+        <aside class="sidebar" id="sidebar">
+            <div class="sidebar-brand">
+                <h1>RevWorkforce</h1>
+                <p>HR Management</p>
+            </div>
+            <nav class="sidebar-nav">
+                <a class="nav-link" th:href="@{/dashboard}"><span class="icon">🏠</span>Dashboard</a>
+                <div class="nav-label" style="margin-top:8px">Leave</div>
+                <a class="nav-link" th:href="@{/leaves}"><span class="icon">📅</span>My Leaves</a>
+                <a class="nav-link active" th:href="@{/leaves/apply}"><span class="icon">➕</span>Apply Leave</a>
+                <a class="nav-link" sec:authorize="hasAnyRole('MANAGER','ADMIN')" th:href="@{/leaves/team}"><span
+                        class="icon">👥</span>Team Leaves</a>
+                <div class="nav-label" style="margin-top:8px">Performance</div>
+                <a class="nav-link" th:href="@{/performance/reviews}"><span class="icon">⭐</span>My Reviews</a>
+                <a class="nav-link" th:href="@{/performance/goals}"><span class="icon">🎯</span>My Goals</a>
+            </nav>
+            <div class="sidebar-footer"><button class="btn-logout" onclick="logout()">Sign Out</button></div>
+        </aside>
+        <main class="main-content">
+            <div class="topbar">
+                <div class="d-flex align-center gap-12">
+                    <button class="sidebar-toggle" onclick="toggleSidebar()">☰</button>
+                    <h2>Apply for Leave</h2>
+                </div>
+                <a th:href="@{/leaves}" class="btn btn-ghost btn-sm">← Back</a>
+            </div>
+            <div class="page-content">
+                <div class="stats-grid mb-24" style="grid-template-columns:repeat(3,1fr)">
+                    <div class="stat-card">
+                        <div class="stat-icon">🌴</div>
+                        <div class="stat-value" th:text="${balance.casualLeave}">0</div>
+                        <div class="stat-label">Casual Leave</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">🏥</div>
+                        <div class="stat-value" th:text="${balance.sickLeave}">0</div>
+                        <div class="stat-label">Sick Leave</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">💼</div>
+                        <div class="stat-value" th:text="${balance.paidLeave}">0</div>
+                        <div class="stat-label">Paid Leave</div>
+                    </div>
+                </div>
+
+                <div class="card" style="max-width:600px">
+                    <div class="card-title mb-16">📝 Leave Application Form</div>
+                    <div id="formAlert" class="alert" style="display:none"></div>
+
+                    <div class="form-group">
+                        <label class="form-label">Leave Type *</label>
+                        <select id="leaveType" class="form-control">
+                            <option value="">Select leave type</option>
+                            <option value="CASUAL_LEAVE">Casual Leave</option>
+                            <option value="SICK_LEAVE">Sick Leave</option>
+                            <option value="PAID_LEAVE">Paid Leave</option>
+                        </select>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label class="form-label">From Date *</label>
+                            <input id="fromDate" type="date" class="form-control">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">To Date *</label>
+                            <input id="toDate" type="date" class="form-control">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Reason</label>
+                        <textarea id="reason" class="form-control" placeholder="Optional reason for leave…"></textarea>
+                    </div>
+
+                    <div style="display:flex;gap:12px;margin-top:8px">
+                        <button class="btn btn-primary" onclick="submitLeave()">Submit Application</button>
+                        <a th:href="@{/leaves}" class="btn btn-ghost">Cancel</a>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+    <script>
+        // Set min date to today
+        document.getElementById('fromDate').min = new Date().toISOString().split('T')[0];
+        document.getElementById('toDate').min = new Date().toISOString().split('T')[0];
+
+        async function submitLeave() {
+            const leaveType = document.getElementById('leaveType').value;
+            const fromDate = document.getElementById('fromDate').value;
+            const toDate = document.getElementById('toDate').value;
+            const reason = document.getElementById('reason').value;
+
+            if (!leaveType || !fromDate || !toDate) { showAlert('Please fill required fields.', 'danger'); return; }
+            if (fromDate > toDate) { showAlert('From date cannot be after to date.', 'danger'); return; }
+
+            const res = await fetch('/api/leaves/apply', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', ...getAuthHeaders() },
+                body: JSON.stringify({ leaveType, fromDate, toDate, reason })
+            });
+            const data = await res.json();
+            if (res.ok) { showAlert('Leave application submitted successfully!', 'success'); setTimeout(() => window.location.href = '/leaves', 1500); }
+            else { showAlert(data.message || 'Failed to submit leave.', 'danger'); }
+        }
+
+        function showAlert(msg, type) {
+            const el = document.getElementById('formAlert');
+            el.className = 'alert alert-' + type;
+            el.textContent = msg;
+            el.style.display = 'block';
+        }
+        function getAuthHeaders() {
+            const t = document.cookie.split(';').map(c => c.trim()).find(c => c.startsWith('JWT_TOKEN='))?.split('=')[1];
+            return t ? { 'Authorization': 'Bearer ' + t } : {};
+        }
+        function logout() { document.cookie = 'JWT_TOKEN=;expires=Thu,01 Jan 1970'; window.location.href = '/login'; }
+        function toggleSidebar() { document.getElementById('sidebar').classList.toggle('open'); }
+    </script>
+</body>
+
+</html>

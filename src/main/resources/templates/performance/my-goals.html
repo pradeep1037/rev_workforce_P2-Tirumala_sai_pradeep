@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>My Goals – RevWorkforce</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" th:href="@{/css/app.css}">
+</head>
+
+<body>
+    <div class="layout">
+        <aside class="sidebar" id="sidebar">
+            <div class="sidebar-brand">
+                <h1>RevWorkforce</h1>
+                <p>HR Management</p>
+            </div>
+            <nav class="sidebar-nav">
+                <a class="nav-link" th:href="@{/dashboard}"><span class="icon">🏠</span>Dashboard</a>
+                <div class="nav-label" style="margin-top:8px">Performance</div>
+                <a class="nav-link" th:href="@{/performance/reviews}"><span class="icon">⭐</span>My Reviews</a>
+                <a class="nav-link active" th:href="@{/performance/goals}"><span class="icon">🎯</span>My Goals</a>
+                <div class="nav-label" style="margin-top:8px">Leave</div>
+                <a class="nav-link" th:href="@{/leaves}"><span class="icon">📅</span>My Leaves</a>
+            </nav>
+            <div class="sidebar-footer"><button class="btn-logout" onclick="logout()">Sign Out</button></div>
+        </aside>
+        <main class="main-content">
+            <div class="topbar">
+                <div class="d-flex align-center gap-12">
+                    <button class="sidebar-toggle" onclick="toggleSidebar()">☰</button>
+                    <h2>My Goals</h2>
+                </div>
+                <button class="btn btn-primary btn-sm"
+                    onclick="document.getElementById('newGoalModal').classList.add('open')">➕ Add Goal</button>
+            </div>
+            <div class="page-content">
+                <div class="card">
+                    <div th:if="${#lists.isEmpty(goals)}"
+                        style="text-align:center;color:var(--text-muted);padding:48px">No goals set yet.</div>
+                    <div th:each="g : ${goals}" style="padding:16px 0;border-bottom:1px solid var(--border)">
+                        <div class="d-flex justify-between align-center mb-8">
+                            <div class="fw-600" th:text="${g.goalDescription}">-</div>
+                            <div style="display:flex;gap:6px">
+                                <span class="badge"
+                                    th:classappend="${g.priority == 'HIGH' ? 'badge-high' : (g.priority == 'MEDIUM' ? 'badge-medium' : 'badge-low')}"
+                                    th:text="${g.priority}">-</span>
+                                <span class="badge"
+                                    th:classappend="${g.status == 'COMPLETED' ? 'badge-approved' : (g.status == 'IN_PROGRESS' ? 'badge-submitted' : 'badge-draft')}"
+                                    th:text="${g.status?.replace('_',' ')}">-</span>
+                            </div>
+                        </div>
+                        <div class="d-flex align-center gap-12 mb-8">
+                            <div class="progress" style="flex:1">
+                                <div class="progress-bar" th:style="'width:' + (g.progressPercent ?: 0) + '%'"></div>
+                            </div>
+                            <div class="fs-xs text-muted" th:text="${(g.progressPercent ?: 0) + '%'}">0%</div>
+                        </div>
+                        <div style="display:flex;gap:8px;align-items:center">
+                            <span class="fs-xs text-muted" th:if="${g.deadline}"
+                                th:text="'Deadline: ' + ${g.deadline}">-</span>
+                            <button class="btn btn-ghost btn-xs"
+                                th:onclick="'openUpdateGoal(' + ${g.goalId} + ', ' + ${g.progressPercent ?: 0} + ')'">Update
+                                Progress</button>
+                        </div>
+                        <div th:if="${g.managerComments}" class="alert alert-info fs-xs mt-8"
+                            style="margin:0;padding:8px 12px" th:text="'Manager: ' + ${g.managerComments}">-</div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- New Goal Modal -->
+    <div class="modal-overlay" id="newGoalModal">
+        <div class="modal">
+            <div class="modal-header">
+                <div class="modal-title">Add New Goal</div><button class="modal-close"
+                    onclick="document.getElementById('newGoalModal').classList.remove('open')">✕</button>
+            </div>
+            <div class="form-group"><label class="form-label">Goal Description *</label><textarea id="goalDesc"
+                    class="form-control" rows="3"></textarea></div>
+            <div class="form-row">
+                <div class="form-group"><label class="form-label">Deadline</label><input id="goalDeadline" type="date"
+                        class="form-control"></div>
+                <div class="form-group"><label class="form-label">Priority *</label>
+                    <select id="goalPriority" class="form-control">
+                        <option value="HIGH">High</option>
+                        <option value="MEDIUM" selected>Medium</option>
+                        <option value="LOW">Low</option>
+                    </select>
+                </div>
+            </div>
+            <div style="display:flex;gap:12px;margin-top:8px">
+                <button class="btn btn-primary" onclick="saveGoal()">Save Goal</button>
+                <button class="btn btn-ghost"
+                    onclick="document.getElementById('newGoalModal').classList.remove('open')">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Update Progress Modal -->
+    <div class="modal-overlay" id="updateGoalModal">
+        <div class="modal">
+            <div class="modal-header">
+                <div class="modal-title">Update Goal Progress</div><button class="modal-close"
+                    onclick="document.getElementById('updateGoalModal').classList.remove('open')">✕</button>
+            </div>
+            <input type="hidden" id="updateGoalId">
+            <div class="form-group"><label class="form-label">Progress (%)</label><input id="progressVal" type="range"
+                    min="0" max="100" step="5" class="form-control"
+                    oninput="document.getElementById('progressDisplay').textContent=this.value+'%'"></div>
+            <div class="fw-600" id="progressDisplay" style="text-align:center;font-size:1.5rem;margin-bottom:12px">0%
+            </div>
+            <div class="form-group"><label class="form-label">Status</label>
+                <select id="updateStatus" class="form-control">
+                    <option value="NOT_STARTED">Not Started</option>
+                    <option value="IN_PROGRESS">In Progress</option>
+                    <option value="COMPLETED">Completed</option>
+                </select>
+            </div>
+            <div style="display:flex;gap:12px;margin-top:8px">
+                <button class="btn btn-primary" onclick="updateProgress()">Save</button>
+                <button class="btn btn-ghost"
+                    onclick="document.getElementById('updateGoalModal').classList.remove('open')">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function openUpdateGoal(id, progress) {
+            document.getElementById('updateGoalId').value = id;
+            document.getElementById('progressVal').value = progress;
+            document.getElementById('progressDisplay').textContent = progress + '%';
+            document.getElementById('updateGoalModal').classList.add('open');
+        }
+        async function saveGoal() {
+            const body = { goalDescription: document.getElementById('goalDesc').value, deadline: document.getElementById('goalDeadline').value || null, priority: document.getElementById('goalPriority').value };
+            const res = await fetch('/api/performance/goals', { method: 'POST', headers: { 'Content-Type': 'application/json', ...getAuthHeaders() }, body: JSON.stringify(body) });
+            if (res.ok) { location.reload(); }
+            else { const d = await res.json(); alert(d.message || 'Error'); }
+        }
+        async function updateProgress() {
+            const id = document.getElementById('updateGoalId').value;
+            const progress = document.getElementById('progressVal').value;
+            const status = document.getElementById('updateStatus').value;
+            const res = await fetch(`/api/performance/goals/${id}/progress?progress=${progress}&status=${status}`, { method: 'PUT', headers: getAuthHeaders() });
+            if (res.ok) { location.reload(); } else { alert('Error updating goal'); }
+        }
+        function getAuthHeaders() { const t = document.cookie.split(';').map(c => c.trim()).find(c => c.startsWith('JWT_TOKEN='))?.split('=')[1]; return t ? { 'Authorization': 'Bearer ' + t } : {}; }
+        function logout() { document.cookie = 'JWT_TOKEN=;expires=Thu,01 Jan 1970'; window.location.href = '/login'; }
+        function toggleSidebar() { document.getElementById('sidebar').classList.toggle('open'); }
+    </script>
+</body>
+
+</html>

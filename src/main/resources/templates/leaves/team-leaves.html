@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>Team Leaves – RevWorkforce</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" th:href="@{/css/app.css}">
+</head>
+
+<body>
+    <div class="layout">
+        <aside class="sidebar" id="sidebar">
+            <div class="sidebar-brand">
+                <h1>RevWorkforce</h1>
+                <p>HR Management</p>
+            </div>
+            <nav class="sidebar-nav">
+                <a class="nav-link" th:href="@{/dashboard}"><span class="icon">🏠</span>Dashboard</a>
+                <div class="nav-label" style="margin-top:8px">Leave</div>
+                <a class="nav-link" th:href="@{/leaves}"><span class="icon">📅</span>My Leaves</a>
+                <a class="nav-link" th:href="@{/leaves/apply}"><span class="icon">➕</span>Apply Leave</a>
+                <a class="nav-link active" th:href="@{/leaves/team}"><span class="icon">👥</span>Team Leaves</a>
+                <div class="nav-label" style="margin-top:8px">Performance</div>
+                <a class="nav-link" th:href="@{/performance/reviews}"><span class="icon">⭐</span>My Reviews</a>
+                <a class="nav-link" th:href="@{/performance/goals}"><span class="icon">🎯</span>My Goals</a>
+                <a class="nav-link" th:href="@{/performance/team-reviews}"><span class="icon">📊</span>Team Reviews</a>
+                <div class="nav-section" sec:authorize="hasRole('ADMIN')">
+                    <div class="nav-label">Admin</div>
+                    <a class="nav-link" th:href="@{/admin/employees}"><span class="icon">🏢</span>Employees</a>
+                    <a class="nav-link" th:href="@{/admin/leaves}"><span class="icon">📑</span>All Leaves</a>
+                </div>
+            </nav>
+            <div class="sidebar-footer"><button class="btn-logout" onclick="logout()">Sign Out</button></div>
+        </aside>
+        <main class="main-content">
+            <div class="topbar">
+                <div class="d-flex align-center gap-12">
+                    <button class="sidebar-toggle" onclick="toggleSidebar()">☰</button>
+                    <h2>Team Leave Requests</h2>
+                </div>
+            </div>
+            <div class="page-content">
+                <div class="card">
+                    <div class="table-wrapper">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Employee</th>
+                                    <th>Type</th>
+                                    <th>From</th>
+                                    <th>To</th>
+                                    <th>Days</th>
+                                    <th>Reason</th>
+                                    <th>Status</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr th:if="${#lists.isEmpty(teamLeaves)}">
+                                    <td colspan="8" style="text-align:center;color:var(--text-muted);padding:32px;">No
+                                        team leave requests.</td>
+                                </tr>
+                                <tr th:each="leave : ${teamLeaves}">
+                                    <td>
+                                        <div class="fw-600" th:text="${leave.employeeName}">-</div>
+                                        <div class="fs-xs text-muted" th:text="${leave.employeeEmail}">-</div>
+                                    </td>
+                                    <td th:text="${leave.leaveType?.replace('_',' ')}">-</td>
+                                    <td th:text="${leave.fromDate}">-</td>
+                                    <td th:text="${leave.toDate}">-</td>
+                                    <td th:text="${leave.days}">-</td>
+                                    <td class="text-muted fs-sm" th:text="${leave.reason ?: '-'}">-</td>
+                                    <td>
+                                        <span class="badge"
+                                            th:classappend="${leave.status == 'PENDING' ? 'badge-pending' : (leave.status == 'APPROVED' ? 'badge-approved' : (leave.status == 'REJECTED' ? 'badge-rejected' : 'badge-cancelled'))}"
+                                            th:text="${leave.status}">-</span>
+                                    </td>
+                                    <td>
+                                        <div th:if="${leave.status == 'PENDING'}" style="display:flex;gap:6px">
+                                            <button class="btn btn-success btn-xs"
+                                                th:onclick="'processLeave(' + ${leave.leaveId} + ', \'APPROVE\')'">✓
+                                                Approve</button>
+                                            <button class="btn btn-danger btn-xs"
+                                                th:onclick="'processLeave(' + ${leave.leaveId} + ', \'REJECT\')'">✗
+                                                Reject</button>
+                                        </div>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Reject Modal -->
+    <div class="modal-overlay" id="rejectModal">
+        <div class="modal">
+            <div class="modal-header">
+                <div class="modal-title">Provide Rejection Reason</div>
+                <button class="modal-close" onclick="closeModal()">✕</button>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Comments (required)</label>
+                <textarea id="rejectComments" class="form-control" rows="3"
+                    placeholder="Reason for rejection…"></textarea>
+            </div>
+            <div style="display:flex;gap:12px;margin-top:8px">
+                <button class="btn btn-danger" onclick="submitAction()">Confirm Reject</button>
+                <button class="btn btn-ghost" onclick="closeModal()">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let pendingLeaveId = null, pendingAction = null;
+
+        async function processLeave(id, action) {
+            if (action === 'APPROVE') {
+                const res = await fetch(`/api/leaves/${id}/action`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json', ...getAuthHeaders() },
+                    body: JSON.stringify({ action: 'APPROVE', comments: '' })
+                });
+                if (res.ok) { alert('Leave approved!'); location.reload(); }
+                else { const d = await res.json(); alert(d.message || 'Error'); }
+            } else {
+                pendingLeaveId = id; pendingAction = action;
+                document.getElementById('rejectModal').classList.add('open');
+            }
+        }
+
+        async function submitAction() {
+            const comments = document.getElementById('rejectComments').value;
+            if (!comments.trim()) { alert('Please provide a rejection reason.'); return; }
+            const res = await fetch(`/api/leaves/${pendingLeaveId}/action`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json', ...getAuthHeaders() },
+                body: JSON.stringify({ action: 'REJECT', comments })
+            });
+            if (res.ok) { alert('Leave rejected.'); location.reload(); }
+            else { const d = await res.json(); alert(d.message || 'Error'); }
+        }
+
+        function closeModal() { document.getElementById('rejectModal').classList.remove('open'); }
+        function getAuthHeaders() { const t = document.cookie.split(';').map(c => c.trim()).find(c => c.startsWith('JWT_TOKEN='))?.split('=')[1]; return t ? { 'Authorization': 'Bearer ' + t } : {}; }
+        function logout() { document.cookie = 'JWT_TOKEN=;expires=Thu,01 Jan 1970'; window.location.href = '/login'; }
+        function toggleSidebar() { document.getElementById('sidebar').classList.toggle('open'); }
+    </script>
+</body>
+
+</html>

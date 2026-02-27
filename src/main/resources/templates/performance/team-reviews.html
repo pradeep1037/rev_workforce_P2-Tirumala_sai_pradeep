@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>Team Reviews – RevWorkforce</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" th:href="@{/css/app.css}">
+</head>
+
+<body>
+    <div class="layout">
+        <aside class="sidebar" id="sidebar">
+            <div class="sidebar-brand">
+                <h1>RevWorkforce</h1>
+                <p>HR Management</p>
+            </div>
+            <nav class="sidebar-nav">
+                <a class="nav-link" th:href="@{/dashboard}"><span class="icon">🏠</span>Dashboard</a>
+                <div class="nav-label" style="margin-top:8px">Performance</div>
+                <a class="nav-link" th:href="@{/performance/reviews}"><span class="icon">⭐</span>My Reviews</a>
+                <a class="nav-link" th:href="@{/performance/goals}"><span class="icon">🎯</span>My Goals</a>
+                <a class="nav-link active" th:href="@{/performance/team-reviews}"><span class="icon">📊</span>Team
+                    Reviews</a>
+                <div class="nav-label" style="margin-top:8px">Leave</div>
+                <a class="nav-link" th:href="@{/leaves}"><span class="icon">📅</span>My Leaves</a>
+                <a class="nav-link" th:href="@{/leaves/team}"><span class="icon">👥</span>Team Leaves</a>
+            </nav>
+            <div class="sidebar-footer"><button class="btn-logout" onclick="logout()">Sign Out</button></div>
+        </aside>
+        <main class="main-content">
+            <div class="topbar">
+                <div class="d-flex align-center gap-12">
+                    <button class="sidebar-toggle" onclick="toggleSidebar()">☰</button>
+                    <h2>Team Performance Reviews</h2>
+                </div>
+            </div>
+            <div class="page-content">
+                <div class="card">
+                    <div th:if="${#lists.isEmpty(reviews)}"
+                        style="text-align:center;color:var(--text-muted);padding:48px">No team reviews submitted yet.
+                    </div>
+                    <div th:each="r : ${reviews}" style="padding:20px 0;border-bottom:1px solid var(--border)">
+                        <div class="d-flex justify-between align-center mb-8">
+                            <div>
+                                <div class="fw-700" th:text="${r.employeeName}">Employee</div>
+                                <div class="fs-xs text-muted" th:text="'Year: ' + ${r.year}">Year</div>
+                                <div class="fs-xs text-muted mt-4"></div>
+                            </div>
+                            <div style="display:flex;gap:8px;align-items:center">
+                                <span class="badge"
+                                    th:classappend="${r.status == 'DRAFT' ? 'badge-draft' : (r.status == 'SUBMITTED' ? 'badge-submitted' : 'badge-reviewed')}"
+                                    th:text="${r.status}">-</span>
+                                <button th:if="${r.status == 'SUBMITTED'}" class="btn btn-primary btn-xs"
+                                    th:onclick="'openFeedback(' + ${r.reviewId} + ')'">Give Feedback</button>
+                            </div>
+                        </div>
+                        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;font-size:0.85rem">
+                            <div th:if="${r.keyDeliverables}">
+                                <div class="text-muted fs-xs">Key Deliverables</div>
+                                <div th:text="${r.keyDeliverables}">-</div>
+                            </div>
+                            <div th:if="${r.selfRating != null}">
+                                <div class="text-muted fs-xs">Self Rating</div>
+                                <div class="fw-700 text-primary" th:text="${r.selfRating + '/5'}">-</div>
+                            </div>
+                            <div th:if="${r.managerFeedback}" style="grid-column:1/-1">
+                                <div class="text-muted fs-xs">Your Feedback</div>
+                                <div class="alert alert-info" style="margin:4px 0;padding:8px 12px"
+                                    th:text="${r.managerFeedback}">-</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Feedback Modal -->
+    <div class="modal-overlay" id="feedbackModal">
+        <div class="modal">
+            <div class="modal-header">
+                <div class="modal-title">Provide Performance Feedback</div><button class="modal-close"
+                    onclick="document.getElementById('feedbackModal').classList.remove('open')">✕</button>
+            </div>
+            <input type="hidden" id="feedbackReviewId">
+            <div class="form-group">
+                <label class="form-label">Manager Rating (1-5) *</label>
+                <input id="managerRating" type="number" min="1" max="5" class="form-control" placeholder="Rate 1-5">
+            </div>
+            <div class="form-group">
+                <label class="form-label">Feedback *</label>
+                <textarea id="managerFeedback" class="form-control" rows="4"
+                    placeholder="Provide detailed feedback…"></textarea>
+            </div>
+            <div style="display:flex;gap:12px;margin-top:8px">
+                <button class="btn btn-primary" onclick="submitFeedback()">Submit Feedback</button>
+                <button class="btn btn-ghost"
+                    onclick="document.getElementById('feedbackModal').classList.remove('open')">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function openFeedback(id) {
+            document.getElementById('feedbackReviewId').value = id;
+            document.getElementById('feedbackModal').classList.add('open');
+        }
+        async function submitFeedback() {
+            const id = document.getElementById('feedbackReviewId').value;
+            const body = { managerRating: parseInt(document.getElementById('managerRating').value), managerFeedback: document.getElementById('managerFeedback').value };
+            if (!body.managerFeedback || !body.managerRating) { alert('Please provide rating and feedback.'); return; }
+            const res = await fetch(`/api/performance/reviews/${id}/feedback`, { method: 'PUT', headers: { 'Content-Type': 'application/json', ...getAuthHeaders() }, body: JSON.stringify(body) });
+            if (res.ok) { alert('Feedback submitted!'); location.reload(); }
+            else { const d = await res.json(); alert(d.message || 'Error'); }
+        }
+        function getAuthHeaders() { const t = document.cookie.split(';').map(c => c.trim()).find(c => c.startsWith('JWT_TOKEN='))?.split('=')[1]; return t ? { 'Authorization': 'Bearer ' + t } : {}; }
+        function logout() { document.cookie = 'JWT_TOKEN=;expires=Thu,01 Jan 1970'; window.location.href = '/login'; }
+        function toggleSidebar() { document.getElementById('sidebar').classList.toggle('open'); }
+    </script>
+</body>
+
+</html>

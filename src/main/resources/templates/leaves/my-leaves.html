@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>My Leaves – RevWorkforce</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" th:href="@{/css/app.css}">
+</head>
+
+<body>
+    <div class="layout">
+        <!-- SIDEBAR FRAGMENT (inline) -->
+        <aside class="sidebar" id="sidebar">
+            <div class="sidebar-brand">
+                <h1>RevWorkforce</h1>
+                <p>HR Management</p>
+            </div>
+            <nav class="sidebar-nav">
+                <div class="nav-section">
+                    <a class="nav-link" th:href="@{/dashboard}"><span class="icon">🏠</span>Dashboard</a>
+                    <a class="nav-link" th:href="@{/profile}"><span class="icon">👤</span>My Profile</a>
+                    <a class="nav-link" th:href="@{/directory}"><span class="icon">📋</span>Directory</a>
+                    <a class="nav-link" th:href="@{/notifications}"><span class="icon">🔔</span>Notifications
+                        <span class="nav-badge" th:if="${unreadCount > 0}" th:text="${unreadCount}"></span>
+                    </a>
+                </div>
+                <div class="nav-section">
+                    <div class="nav-label">Leave</div>
+                    <a class="nav-link active" th:href="@{/leaves}"><span class="icon">📅</span>My Leaves</a>
+                    <a class="nav-link" th:href="@{/leaves/apply}"><span class="icon">➕</span>Apply Leave</a>
+                    <a class="nav-link" sec:authorize="hasAnyRole('MANAGER','ADMIN')" th:href="@{/leaves/team}"><span
+                            class="icon">👥</span>Team Leaves</a>
+                </div>
+                <div class="nav-section">
+                    <div class="nav-label">Performance</div>
+                    <a class="nav-link" th:href="@{/performance/reviews}"><span class="icon">⭐</span>My Reviews</a>
+                    <a class="nav-link" th:href="@{/performance/goals}"><span class="icon">🎯</span>My Goals</a>
+                    <a class="nav-link" sec:authorize="hasAnyRole('MANAGER','ADMIN')"
+                        th:href="@{/performance/team-reviews}"><span class="icon">📊</span>Team Reviews</a>
+                </div>
+                <div class="nav-section" sec:authorize="hasRole('ADMIN')">
+                    <div class="nav-label">Admin</div>
+                    <a class="nav-link" th:href="@{/admin/employees}"><span class="icon">🏢</span>Employees</a>
+                    <a class="nav-link" th:href="@{/admin/departments}"><span class="icon">⚙️</span>Departments</a>
+                    <a class="nav-link" th:href="@{/admin/leaves}"><span class="icon">📑</span>All Leaves</a>
+                    <a class="nav-link" th:href="@{/admin/announcements}"><span class="icon">📢</span>Announcements</a>
+                    <a class="nav-link" th:href="@{/admin/audit-logs}"><span class="icon">🔍</span>Audit Logs</a>
+                </div>
+            </nav>
+            <div class="sidebar-footer">
+                <button class="btn-logout" onclick="logout()">Sign Out</button>
+            </div>
+        </aside>
+
+        <main class="main-content">
+            <div class="topbar">
+                <div class="d-flex align-center gap-12">
+                    <button class="sidebar-toggle" onclick="toggleSidebar()">☰</button>
+                    <h2>My Leaves</h2>
+                </div>
+                <a th:href="@{/leaves/apply}" class="btn btn-primary btn-sm">➕ Apply Leave</a>
+            </div>
+
+            <div class="page-content">
+                <!-- BALANCE -->
+                <div class="stats-grid mb-24">
+                    <div class="stat-card">
+                        <div class="stat-icon">🌴</div>
+                        <div class="stat-value" th:text="${balance.casualLeave}">0</div>
+                        <div class="stat-label">Casual Leave</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">🏥</div>
+                        <div class="stat-value" th:text="${balance.sickLeave}">0</div>
+                        <div class="stat-label">Sick Leave</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">💼</div>
+                        <div class="stat-value" th:text="${balance.paidLeave}">0</div>
+                        <div class="stat-label">Paid Leave</div>
+                    </div>
+                </div>
+
+                <!-- LEAVE TABLE -->
+                <div class="card">
+                    <div class="card-header">
+                        <div class="card-title">Leave Applications</div>
+                    </div>
+                    <div class="table-wrapper">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Type</th>
+                                    <th>From</th>
+                                    <th>To</th>
+                                    <th>Days</th>
+                                    <th>Reason</th>
+                                    <th>Status</th>
+                                    <th>Manager Comment</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr th:if="${#lists.isEmpty(leaves)}">
+                                    <td colspan="8" style="text-align:center;color:var(--text-muted);padding:32px;">No
+                                        leave applications found.</td>
+                                </tr>
+                                <tr th:each="leave : ${leaves}">
+                                    <td><span class="badge" th:text="${leave.leaveType?.replace('_',' ')}"></span></td>
+                                    <td th:text="${leave.fromDate}">-</td>
+                                    <td th:text="${leave.toDate}">-</td>
+                                    <td th:text="${leave.days}">-</td>
+                                    <td class="text-muted fs-sm" th:text="${leave.reason ?: '-'}">-</td>
+                                    <td>
+                                        <span class="badge"
+                                            th:classappend="${leave.status == 'PENDING' ? 'badge-pending' : (leave.status == 'APPROVED' ? 'badge-approved' : (leave.status == 'REJECTED' ? 'badge-rejected' : 'badge-cancelled'))}"
+                                            th:text="${leave.status}">-</span>
+                                    </td>
+                                    <td class="text-muted fs-sm" th:text="${leave.managerComments ?: '-'}">-</td>
+                                    <td>
+                                        <button th:if="${leave.status == 'PENDING'}" class="btn btn-danger btn-xs"
+                                            th:onclick="'cancelLeave(' + ${leave.leaveId} + ')'">Cancel</button>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- HOLIDAYS -->
+                <div class="card mt-16">
+                    <div class="card-header">
+                        <div class="card-title">🗓️ Company Holidays</div>
+                    </div>
+                    <div class="table-wrapper">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Holiday</th>
+                                    <th>Date</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr th:if="${#lists.isEmpty(holidays)}">
+                                    <td colspan="2" style="text-align:center;color:var(--text-muted)">No holidays added
+                                        yet.</td>
+                                </tr>
+                                <tr th:each="h : ${holidays}">
+                                    <td th:text="${h.holidayName}">-</td>
+                                    <td th:text="${h.holidayDate}">-</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        async function cancelLeave(id) {
+            if (!confirm('Cancel this leave application?')) return;
+            const res = await fetch(`/api/leaves/${id}/cancel`, { method: 'DELETE', headers: getAuthHeaders() });
+            if (res.ok) { alert('Leave cancelled.'); location.reload(); }
+            else { const d = await res.json(); alert(d.message || 'Error cancelling leave.'); }
+        }
+        function getAuthHeaders() {
+            const token = getCookie('JWT_TOKEN');
+            return token ? { 'Authorization': 'Bearer ' + token } : {};
+        }
+        function getCookie(name) {
+            return document.cookie.split(';').map(c => c.trim()).find(c => c.startsWith(name + '='))?.split('=')[1];
+        }
+        function logout() { document.cookie = 'JWT_TOKEN=;expires=Thu,01 Jan 1970'; window.location.href = '/login'; }
+        function toggleSidebar() { document.getElementById('sidebar').classList.toggle('open'); }
+    </script>
+</body>
+
+</html>

@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>Announcements – RevWorkforce</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" th:href="@{/css/app.css}">
+</head>
+
+<body>
+    <div class="layout">
+        <aside class="sidebar" id="sidebar">
+            <div class="sidebar-brand">
+                <h1>RevWorkforce</h1>
+                <p>Admin Panel</p>
+            </div>
+            <nav class="sidebar-nav">
+                <a class="nav-link" th:href="@{/dashboard}"><span class="icon">🏠</span>Dashboard</a>
+                <div class="nav-label" style="margin-top:8px">Administration</div>
+                <a class="nav-link" th:href="@{/admin/employees}"><span class="icon">🏢</span>Employees</a>
+                <a class="nav-link" th:href="@{/admin/departments}"><span class="icon">⚙️</span>Departments</a>
+                <a class="nav-link" th:href="@{/admin/leaves}"><span class="icon">📑</span>All Leaves</a>
+                <a class="nav-link active" th:href="@{/admin/announcements}"><span
+                        class="icon">📢</span>Announcements</a>
+                <a class="nav-link" th:href="@{/admin/audit-logs}"><span class="icon">🔍</span>Audit Logs</a>
+            </nav>
+            <div class="sidebar-footer"><button class="btn-logout" onclick="logout()">Sign Out</button></div>
+        </aside>
+        <main class="main-content">
+            <div class="topbar">
+                <div class="d-flex align-center gap-12"><button class="sidebar-toggle"
+                        onclick="toggleSidebar()">☰</button>
+                    <h2>Announcements</h2>
+                </div>
+                <button class="btn btn-primary btn-sm"
+                    onclick="document.getElementById('addAnnModal').classList.add('open')">➕ New Announcement</button>
+            </div>
+            <div class="page-content">
+                <div class="card">
+                    <div th:if="${#lists.isEmpty(announcements)}"
+                        style="text-align:center;color:var(--text-muted);padding:48px">No active announcements.</div>
+                    <div th:each="a : ${announcements}" style="padding:16px 0;border-bottom:1px solid var(--border)">
+                        <div class="d-flex justify-between align-center mb-8">
+                            <div class="fw-700" th:text="${a.title}">Title</div>
+                            <button class="btn btn-danger btn-xs"
+                                th:onclick="'deleteAnn('+${a.announcementId}+')'">Remove</button>
+                        </div>
+                        <div class="text-muted fs-sm" th:text="${a.content}">Content</div>
+                        <div class="fs-xs text-muted mt-8"
+                            th:text="'Posted by ' + ${a.createdBy?.name} + ' · ' + ${a.createdAt}">-</div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Add Announcement Modal -->
+    <div class="modal-overlay" id="addAnnModal">
+        <div class="modal">
+            <div class="modal-header">
+                <div class="modal-title">New Announcement</div><button class="modal-close"
+                    onclick="document.getElementById('addAnnModal').classList.remove('open')">✕</button>
+            </div>
+            <div class="form-group"><label class="form-label">Title</label><input id="annTitle" class="form-control"
+                    placeholder="Announcement title…"></div>
+            <div class="form-group"><label class="form-label">Content</label><textarea id="annContent"
+                    class="form-control" rows="4" placeholder="Write the announcement…"></textarea></div>
+            <button class="btn btn-primary w-100" onclick="addAnn()">Post Announcement</button>
+        </div>
+    </div>
+
+    <script>
+        async function addAnn() {
+            const title = document.getElementById('annTitle').value;
+            const content = document.getElementById('annContent').value;
+            if (!title || !content) { alert('Please fill all fields'); return; }
+            const res = await fetch(`/api/admin/announcements?title=${encodeURIComponent(title)}&content=${encodeURIComponent(content)}`, { method: 'POST', headers: getAuthHeaders() });
+            if (res.ok) { location.reload(); } else { const d = await res.json(); alert(d.message || 'Error'); }
+        }
+        async function deleteAnn(id) {
+            if (!confirm('Remove this announcement?')) return;
+            const res = await fetch(`/api/admin/announcements/${id}`, { method: 'DELETE', headers: getAuthHeaders() });
+            if (res.ok) { location.reload(); }
+        }
+        function getAuthHeaders() { const t = document.cookie.split(';').map(c => c.trim()).find(c => c.startsWith('JWT_TOKEN='))?.split('=')[1]; return t ? { 'Authorization': 'Bearer ' + t } : {}; }
+        function logout() { document.cookie = 'JWT_TOKEN=;expires=Thu,01 Jan 1970'; window.location.href = '/login'; }
+        function toggleSidebar() { document.getElementById('sidebar').classList.toggle('open'); }
+    </script>
+</body>
+
+</html>

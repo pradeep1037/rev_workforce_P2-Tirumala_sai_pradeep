@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>Departments – RevWorkforce</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" th:href="@{/css/app.css}">
+</head>
+
+<body>
+    <div class="layout">
+        <aside class="sidebar" id="sidebar">
+            <div class="sidebar-brand">
+                <h1>RevWorkforce</h1>
+                <p>Admin Panel</p>
+            </div>
+            <nav class="sidebar-nav">
+                <a class="nav-link" th:href="@{/dashboard}"><span class="icon">🏠</span>Dashboard</a>
+                <div class="nav-label" style="margin-top:8px">Administration</div>
+                <a class="nav-link" th:href="@{/admin/employees}"><span class="icon">🏢</span>Employees</a>
+                <a class="nav-link active" th:href="@{/admin/departments}"><span class="icon">⚙️</span>Departments</a>
+                <a class="nav-link" th:href="@{/admin/leaves}"><span class="icon">📑</span>All Leaves</a>
+                <a class="nav-link" th:href="@{/admin/announcements}"><span class="icon">📢</span>Announcements</a>
+                <a class="nav-link" th:href="@{/admin/audit-logs}"><span class="icon">🔍</span>Audit Logs</a>
+            </nav>
+            <div class="sidebar-footer"><button class="btn-logout" onclick="logout()">Sign Out</button></div>
+        </aside>
+        <main class="main-content">
+            <div class="topbar">
+                <div class="d-flex align-center gap-12"><button class="sidebar-toggle"
+                        onclick="toggleSidebar()">☰</button>
+                    <h2>Departments & Designations</h2>
+                </div>
+            </div>
+            <div class="page-content" style="display:grid;grid-template-columns:1fr 1fr;gap:24px">
+
+                <!-- DEPARTMENTS -->
+                <div class="card">
+                    <div class="card-header">
+                        <div class="card-title">Departments</div>
+                        <button class="btn btn-primary btn-sm"
+                            onclick="document.getElementById('addDeptModal').classList.add('open')">➕ Add</button>
+                    </div>
+                    <div th:each="d : ${departments}"
+                        style="display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid var(--border)">
+                        <span th:text="${d.deptName}">Dept</span>
+                        <button class="btn btn-danger btn-xs" th:onclick="'deleteDept('+${d.deptId}+')'">Delete</button>
+                    </div>
+                </div>
+
+                <!-- DESIGNATIONS -->
+                <div class="card">
+                    <div class="card-header">
+                        <div class="card-title">Designations</div>
+                        <button class="btn btn-primary btn-sm"
+                            onclick="document.getElementById('addDesigModal').classList.add('open')">➕ Add</button>
+                    </div>
+                    <div th:each="d : ${designations}"
+                        style="display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid var(--border)">
+                        <span th:text="${d.desigName}">Desig</span>
+                        <button class="btn btn-danger btn-xs"
+                            th:onclick="'deleteDesig('+${d.desigId}+')'">Delete</button>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Add Department Modal -->
+    <div class="modal-overlay" id="addDeptModal">
+        <div class="modal" style="max-width:360px">
+            <div class="modal-header">
+                <div class="modal-title">Add Department</div><button class="modal-close"
+                    onclick="document.getElementById('addDeptModal').classList.remove('open')">✕</button>
+            </div>
+            <div class="form-group"><label class="form-label">Department Name</label><input id="deptName"
+                    class="form-control"></div>
+            <button class="btn btn-primary w-100" onclick="addDept()">Save</button>
+        </div>
+    </div>
+
+    <!-- Add Designation Modal -->
+    <div class="modal-overlay" id="addDesigModal">
+        <div class="modal" style="max-width:360px">
+            <div class="modal-header">
+                <div class="modal-title">Add Designation</div><button class="modal-close"
+                    onclick="document.getElementById('addDesigModal').classList.remove('open')">✕</button>
+            </div>
+            <div class="form-group"><label class="form-label">Designation Name</label><input id="desigName"
+                    class="form-control"></div>
+            <button class="btn btn-primary w-100" onclick="addDesig()">Save</button>
+        </div>
+    </div>
+
+    <script>
+        async function addDept() {
+            const name = document.getElementById('deptName').value;
+            if (!name) return;
+            const res = await fetch(`/api/admin/departments?name=${encodeURIComponent(name)}`, { method: 'POST', headers: getAuthHeaders() });
+            if (res.ok) { location.reload(); } else { const d = await res.json(); alert(d.message || 'Error'); }
+        }
+        async function addDesig() {
+            const name = document.getElementById('desigName').value;
+            if (!name) return;
+            const res = await fetch(`/api/admin/designations?name=${encodeURIComponent(name)}`, { method: 'POST', headers: getAuthHeaders() });
+            if (res.ok) { location.reload(); } else { const d = await res.json(); alert(d.message || 'Error'); }
+        }
+        async function deleteDept(id) {
+            if (!confirm('Delete this department?')) return;
+            const res = await fetch(`/api/admin/departments/${id}`, { method: 'DELETE', headers: getAuthHeaders() });
+            if (res.ok) { location.reload(); }
+        }
+        async function deleteDesig(id) {
+            if (!confirm('Delete this designation?')) return;
+            const res = await fetch(`/api/admin/designations/${id}`, { method: 'DELETE', headers: getAuthHeaders() });
+            if (res.ok) { location.reload(); }
+        }
+        function getAuthHeaders() { const t = document.cookie.split(';').map(c => c.trim()).find(c => c.startsWith('JWT_TOKEN='))?.split('=')[1]; return t ? { 'Authorization': 'Bearer ' + t } : {}; }
+        function logout() { document.cookie = 'JWT_TOKEN=;expires=Thu,01 Jan 1970'; window.location.href = '/login'; }
+        function toggleSidebar() { document.getElementById('sidebar').classList.toggle('open'); }
+    </script>
+</body>
+
+</html>

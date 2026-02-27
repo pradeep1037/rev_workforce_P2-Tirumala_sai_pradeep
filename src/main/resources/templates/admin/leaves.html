@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>All Leaves – RevWorkforce</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" th:href="@{/css/app.css}">
+</head>
+
+<body>
+    <div class="layout">
+        <aside class="sidebar" id="sidebar">
+            <div class="sidebar-brand">
+                <h1>RevWorkforce</h1>
+                <p>Admin Panel</p>
+            </div>
+            <nav class="sidebar-nav">
+                <a class="nav-link" th:href="@{/dashboard}"><span class="icon">🏠</span>Dashboard</a>
+                <div class="nav-label" style="margin-top:8px">Administration</div>
+                <a class="nav-link" th:href="@{/admin/employees}"><span class="icon">🏢</span>Employees</a>
+                <a class="nav-link" th:href="@{/admin/departments}"><span class="icon">⚙️</span>Departments</a>
+                <a class="nav-link active" th:href="@{/admin/leaves}"><span class="icon">📑</span>All Leaves</a>
+                <a class="nav-link" th:href="@{/admin/announcements}"><span class="icon">📢</span>Announcements</a>
+                <a class="nav-link" th:href="@{/admin/audit-logs}"><span class="icon">🔍</span>Audit Logs</a>
+            </nav>
+            <div class="sidebar-footer"><button class="btn-logout" onclick="logout()">Sign Out</button></div>
+        </aside>
+        <main class="main-content">
+            <div class="topbar">
+                <div class="d-flex align-center gap-12"><button class="sidebar-toggle"
+                        onclick="toggleSidebar()">☰</button>
+                    <h2>All Leave Applications</h2>
+                </div>
+                <button class="btn btn-primary btn-sm"
+                    onclick="document.getElementById('addHolidayModal').classList.add('open')">➕ Add Holiday</button>
+            </div>
+            <div class="page-content">
+                <div class="card mb-24">
+                    <div class="card-header">
+                        <div class="card-title">Leave Applications</div>
+                    </div>
+                    <div class="table-wrapper">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Employee</th>
+                                    <th>Type</th>
+                                    <th>From</th>
+                                    <th>To</th>
+                                    <th>Days</th>
+                                    <th>Status</th>
+                                    <th>Applied On</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr th:if="${#lists.isEmpty(leaves)}">
+                                    <td colspan="7" style="text-align:center;color:var(--text-muted);padding:24px">No
+                                        leave applications.</td>
+                                </tr>
+                                <tr th:each="l : ${leaves}">
+                                    <td>
+                                        <div class="fw-600" th:text="${l.employeeName}">-</div>
+                                        <div class="fs-xs text-muted" th:text="${l.employeeEmail}">-</div>
+                                    </td>
+                                    <td th:text="${l.leaveType?.replace('_',' ')}">-</td>
+                                    <td th:text="${l.fromDate}">-</td>
+                                    <td th:text="${l.toDate}">-</td>
+                                    <td th:text="${l.days}">-</td>
+                                    <td><span class="badge"
+                                            th:classappend="${l.status=='PENDING'?'badge-pending':(l.status=='APPROVED'?'badge-approved':(l.status=='REJECTED'?'badge-rejected':'badge-cancelled'))}"
+                                            th:text="${l.status}">-</span></td>
+                                    <td class="fs-xs text-muted" th:text="${l.appliedOn}">-</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- HOLIDAYS -->
+                <div class="card">
+                    <div class="card-header">
+                        <div class="card-title">Company Holidays</div>
+                    </div>
+                    <div class="table-wrapper">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Holiday Name</th>
+                                    <th>Date</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr th:if="${#lists.isEmpty(holidays)}">
+                                    <td colspan="3" style="text-align:center;color:var(--text-muted)">No holidays added
+                                        yet.</td>
+                                </tr>
+                                <tr th:each="h : ${holidays}">
+                                    <td th:text="${h.holidayName}">-</td>
+                                    <td th:text="${h.holidayDate}">-</td>
+                                    <td><button class="btn btn-danger btn-xs"
+                                            th:onclick="'deleteHoliday('+${h.holidayId}+')'">Delete</button></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Add Holiday Modal -->
+    <div class="modal-overlay" id="addHolidayModal">
+        <div class="modal" style="max-width:380px">
+            <div class="modal-header">
+                <div class="modal-title">Add Holiday</div><button class="modal-close"
+                    onclick="document.getElementById('addHolidayModal').classList.remove('open')">✕</button>
+            </div>
+            <div class="form-group"><label class="form-label">Holiday Name</label><input id="holidayName"
+                    class="form-control" placeholder="e.g. Republic Day"></div>
+            <div class="form-group"><label class="form-label">Date</label><input id="holidayDate" type="date"
+                    class="form-control"></div>
+            <button class="btn btn-primary w-100" onclick="addHoliday()">Add Holiday</button>
+        </div>
+    </div>
+
+    <script>
+        async function addHoliday() {
+            const name = document.getElementById('holidayName').value;
+            const date = document.getElementById('holidayDate').value;
+            if (!name || !date) { alert('Please fill all fields'); return; }
+            const res = await fetch(`/api/leaves/holidays?name=${encodeURIComponent(name)}&date=${date}`, { method: 'POST', headers: getAuthHeaders() });
+            if (res.ok) { location.reload(); } else { const d = await res.json(); alert(d.message || 'Error'); }
+        }
+        async function deleteHoliday(id) {
+            if (!confirm('Delete this holiday?')) return;
+            const res = await fetch(`/api/leaves/holidays/${id}`, { method: 'DELETE', headers: getAuthHeaders() });
+            if (res.ok) { location.reload(); }
+        }
+        function getAuthHeaders() { const t = document.cookie.split(';').map(c => c.trim()).find(c => c.startsWith('JWT_TOKEN='))?.split('=')[1]; return t ? { 'Authorization': 'Bearer ' + t } : {}; }
+        function logout() { document.cookie = 'JWT_TOKEN=;expires=Thu,01 Jan 1970'; window.location.href = '/login'; }
+        function toggleSidebar() { document.getElementById('sidebar').classList.toggle('open'); }
+    </script>
+</body>
+
+</html>
