@@ -65,6 +65,13 @@ public class LeaveController {
         return ResponseEntity.ok(leaveService.getTeamLeaves(current.getEmployeeId()));
     }
 
+    @GetMapping("/team/balances")
+    @PreAuthorize("hasAnyRole('MANAGER','ADMIN')")
+    public ResponseEntity<List<LeaveBalance>> getTeamLeaveBalances() {
+        Employee current = authService.getCurrentEmployee();
+        return ResponseEntity.ok(leaveService.getTeamLeaveBalances(current.getEmployeeId()));
+    }
+
     @PutMapping("/{id}/action")
     @PreAuthorize("hasAnyRole('MANAGER','ADMIN')")
     public ResponseEntity<LeaveApplicationDTO> processLeave(@PathVariable Long id,
@@ -87,6 +94,15 @@ public class LeaveController {
             @RequestParam String date) {
         Holiday h = leaveService.addHoliday(name, LocalDate.parse(date));
         return ResponseEntity.status(HttpStatus.CREATED).body(h);
+    }
+
+    @PutMapping("/holidays/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<Holiday> updateHoliday(@PathVariable Long id,
+            @RequestParam String name,
+            @RequestParam String date) {
+        Holiday h = leaveService.updateHoliday(id, name, LocalDate.parse(date));
+        return ResponseEntity.ok(h);
     }
 
     @DeleteMapping("/holidays/{id}")

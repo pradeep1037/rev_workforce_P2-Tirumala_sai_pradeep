@@ -12,7 +12,7 @@ public class CreateEmployeeRequest {
     private String name;
 
     @NotBlank(message = "Email is required")
-    @Email(message = "Invalid email format")
+    @Pattern(regexp = "^[A-Za-z0-9._%+-]+@gmail\\.com$", message = "Please provide a valid @gmail.com email address")
     private String email;
 
     @NotBlank(message = "Password is required")
@@ -25,6 +25,8 @@ public class CreateEmployeeRequest {
     private Long departmentId;
     private Long designationId;
     private Long managerId;
+
+    @Pattern(regexp = "^(\\+91[\\-\\s]?)?[6789]\\d{9}$", message = "Please provide a valid Indian phone number")
     private String phone;
     private String address;
     private String emergencyContact;

@@ -189,6 +189,11 @@ public class LeaveService implements ILeaveService {
     }
 
     @Override
+    public List<LeaveBalance> getTeamLeaveBalances(Long managerId) {
+        return leaveBalanceRepository.findByEmployeeManagerEmployeeId(managerId);
+    }
+
+    @Override
     public List<Holiday> getHolidays() {
         return holidayRepository.findAll();
     }
@@ -200,6 +205,19 @@ public class LeaveService implements ILeaveService {
             throw new BadRequestException("Holiday already exists for date: " + date);
         }
         Holiday h = new Holiday(null, name, date);
+        return holidayRepository.save(h);
+    }
+
+    @Override
+    @Transactional
+    public Holiday updateHoliday(Long id, String name, LocalDate date) {
+        Holiday h = holidayRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Holiday", "id", id));
+        if (!h.getHolidayDate().equals(date) && holidayRepository.existsByHolidayDate(date)) {
+            throw new BadRequestException("Holiday already exists for date: " + date);
+        }
+        h.setHolidayName(name);
+        h.setHolidayDate(date);
         return holidayRepository.save(h);
     }
 

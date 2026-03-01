@@ -40,6 +40,9 @@
                     <button class="sidebar-toggle" onclick="toggleSidebar()">☰</button>
                     <h2>Team Leave Requests</h2>
                 </div>
+                <div class="topbar-actions">
+                    <button class="btn btn-primary" onclick="openBalancesModal()">View Team Balances</button>
+                </div>
             </div>
             <div class="page-content">
                 <div class="card">
@@ -115,6 +118,33 @@
         </div>
     </div>
 
+    <!-- Team Balances Modal -->
+    <div class="modal-overlay" id="balancesModal">
+        <div class="modal" style="max-width: 700px;">
+            <div class="modal-header">
+                <div class="modal-title">Team Leave Balances</div>
+                <button class="modal-close" onclick="closeBalancesModal()">✕</button>
+            </div>
+            <div class="table-wrapper">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Employee Name</th>
+                            <th>Casual Leave</th>
+                            <th>Sick Leave</th>
+                            <th>Paid Leave</th>
+                        </tr>
+                    </thead>
+                    <tbody id="balancesTableBody">
+                        <tr>
+                            <td colspan="4" style="text-align:center;">Loading...</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
     <script>
         let pendingLeaveId = null, pendingAction = null;
 
@@ -145,7 +175,36 @@
             else { const d = await res.json(); alert(d.message || 'Error'); }
         }
 
+        async function openBalancesModal() {
+            document.getElementById('balancesModal').classList.add('open');
+            const tbody = document.getElementById('balancesTableBody');
+            tbody.innerHTML = '<tr><td colspan="4" style="text-align:center;">Loading...</td></tr>';
+            try {
+                const res = await fetch('/api/leaves/team/balances', { headers: getAuthHeaders() });
+                if (res.ok) {
+                    const data = await res.json();
+                    if (data.length === 0) {
+                        tbody.innerHTML = '<tr><td colspan="4" style="text-align:center;">No direct reports found.</td></tr>';
+                        return;
+                    }
+                    tbody.innerHTML = data.map(b => `
+                        <tr>
+                            <td class="fw-600">${b.employee.name}</td>
+                            <td>${b.casualLeave}</td>
+                            <td>${b.sickLeave}</td>
+                            <td>${b.paidLeave}</td>
+                        </tr>
+                    `).join('');
+                } else {
+                    tbody.innerHTML = '<tr><td colspan="4" style="text-align:center;color:var(--danger)">Failed to load balances.</td></tr>';
+                }
+            } catch (err) {
+                tbody.innerHTML = '<tr><td colspan="4" style="text-align:center;color:var(--danger)">Failed to load balances.</td></tr>';
+            }
+        }
+
         function closeModal() { document.getElementById('rejectModal').classList.remove('open'); }
+        function closeBalancesModal() { document.getElementById('balancesModal').classList.remove('open'); }
         function getAuthHeaders() { const t = document.cookie.split(';').map(c => c.trim()).find(c => c.startsWith('JWT_TOKEN='))?.split('=')[1]; return t ? { 'Authorization': 'Bearer ' + t } : {}; }
         function logout() { document.cookie = 'JWT_TOKEN=;expires=Thu,01 Jan 1970'; window.location.href = '/login'; }
         function toggleSidebar() { document.getElementById('sidebar').classList.toggle('open'); }

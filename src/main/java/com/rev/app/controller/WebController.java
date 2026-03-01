@@ -66,6 +66,14 @@ public class WebController {
         return "profile";
     }
 
+    @GetMapping("/my-team")
+    public String myTeam(Model model) {
+        Employee user = currentUser();
+        model.addAttribute("team", employeeService.getDirectReportees(user.getEmployeeId()));
+        model.addAttribute("unreadCount", notificationService.getUnreadCount(user.getEmployeeId()));
+        return "my-team";
+    }
+
     // ============ LEAVE ============
     @GetMapping("/leaves")
     public String myLeaves(Model model) {
@@ -116,6 +124,14 @@ public class WebController {
         model.addAttribute("reviews", performanceService.getTeamReviews(user.getEmployeeId()));
         model.addAttribute("unreadCount", notificationService.getUnreadCount(user.getEmployeeId()));
         return "performance/team-reviews";
+    }
+
+    @GetMapping("/performance/team-goals")
+    public String teamGoals(Model model) {
+        Employee user = currentUser();
+        model.addAttribute("goals", performanceService.getTeamGoals(user.getEmployeeId()));
+        model.addAttribute("unreadCount", notificationService.getUnreadCount(user.getEmployeeId()));
+        return "performance/team-goals";
     }
 
     // ============ NOTIFICATIONS ============
