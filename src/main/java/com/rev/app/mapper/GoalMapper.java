@@ -29,6 +29,10 @@ public class GoalMapper {
         dto.setProgressPercent(g.getProgressPercent());
         dto.setManagerComments(g.getManagerComments());
 
+        if (g.getPerformanceReview() != null) {
+            dto.setReviewId(g.getPerformanceReview().getReviewId());
+        }
+
         return dto;
     }
 
