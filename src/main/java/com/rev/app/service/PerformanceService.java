@@ -10,6 +10,7 @@ import com.rev.app.exception.BadRequestException;
 import com.rev.app.exception.ResourceNotFoundException;
 import com.rev.app.mapper.GoalMapper;
 import com.rev.app.mapper.PerformanceReviewMapper;
+import com.rev.app.repository.EmployeeRepository;
 import com.rev.app.repository.GoalRepository;
 import com.rev.app.repository.PerformanceReviewRepository;
 import lombok.RequiredArgsConstructor;
@@ -25,6 +26,7 @@ public class PerformanceService implements IPerformanceService {
 
     private final PerformanceReviewRepository reviewRepository;
     private final GoalRepository goalRepository;
+    private final EmployeeRepository employeeRepository;
     private final INotificationService notificationService;
     private final IAuditLogService auditLogService;
     private final PerformanceReviewMapper performanceReviewMapper;
@@ -131,6 +133,84 @@ public class PerformanceService implements IPerformanceService {
         goal.setPriority(Goal.Priority.valueOf(req.getPriority()));
         goal.setStatus(Goal.GoalStatus.NOT_STARTED);
         goal.setProgressPercent(0);
+
+        if (req.getReviewId() != null) {
+            PerformanceReview review = reviewRepository.findById(req.getReviewId())
+                    .orElseThrow(() -> new ResourceNotFoundException("PerformanceReview", "id", req.getReviewId()));
+            if (!review.getEmployee().getEmployeeId().equals(employeeId)) {
+                throw new BadRequestException("Review does not belong to the employee");
+            }
+            goal.setPerformanceReview(review);
+        }
+
+        return goalMapper.toDto(goalRepository.save(goal));
+    }
+
+    @Override
+    @Transactional
+    public GoalDTO assignGoal(Long managerId, GoalRequest req, Employee manager) {
+        if (req.getEmployeeId() == null) {
+            throw new BadRequestException("Employee ID is required to assign a goal");
+        }
+
+        Employee targetEmployee = employeeRepository.findById(req.getEmployeeId())
+                .orElseThrow(() -> new ResourceNotFoundException("Employee", "id", req.getEmployeeId()));
+
+        if (targetEmployee.getManager() == null || !targetEmployee.getManager().getEmployeeId().equals(managerId)) {
+            throw new BadRequestException("You can only assign goals to your direct reportees");
+        }
+
+        Goal goal = new Goal();
+        goal.setEmployee(targetEmployee);
+        goal.setGoalDescription(req.getGoalDescription());
+        goal.setDeadline(req.getDeadline());
+        goal.setPriority(Goal.Priority.valueOf(req.getPriority()));
+        goal.setStatus(Goal.GoalStatus.NOT_STARTED);
+        goal.setProgressPercent(0);
+
+        if (req.getReviewId() != null) {
+            PerformanceReview review = reviewRepository.findById(req.getReviewId())
+                    .orElseThrow(() -> new ResourceNotFoundException("PerformanceReview", "id", req.getReviewId()));
+            if (!review.getEmployee().getEmployeeId().equals(req.getEmployeeId())) {
+                throw new BadRequestException("Review does not belong to the target employee");
+            }
+            goal.setPerformanceReview(review);
+        }
+
+        Goal savedGoal = goalRepository.save(goal);
+
+        notificationService.send(
+                targetEmployee,
+                "Your manager has assigned you a new goal: " + goal.getGoalDescription(),
+                Notification.NotificationType.GOAL_ASSIGNED,
+                savedGoal.getGoalId());
+
+        return goalMapper.toDto(savedGoal);
+    }
+
+    @Override
+    @Transactional
+    public GoalDTO linkGoalToReview(Long goalId, Long reviewId, Employee employee) {
+        Goal goal = goalRepository.findById(goalId)
+                .orElseThrow(() -> new ResourceNotFoundException("Goal", "id", goalId));
+
+        if (!goal.getEmployee().getEmployeeId().equals(employee.getEmployeeId())) {
+            throw new BadRequestException("You can only link your own goals");
+        }
+
+        PerformanceReview review = reviewRepository.findById(reviewId)
+                .orElseThrow(() -> new ResourceNotFoundException("PerformanceReview", "id", reviewId));
+
+        if (!review.getEmployee().getEmployeeId().equals(employee.getEmployeeId())) {
+            throw new BadRequestException("You can only link goals to your own reviews");
+        }
+
+        if (review.getStatus() == PerformanceReview.ReviewStatus.SUBMITTED ||
+                review.getStatus() == PerformanceReview.ReviewStatus.REVIEWED) {
+            throw new BadRequestException("Cannot link goal to a submitted/reviewed performance review");
+        }
+
+        goal.setPerformanceReview(review);
         return goalMapper.toDto(goalRepository.save(goal));
     }
 
