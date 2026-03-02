@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>Team Goals – RevWorkforce</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" th:href="@{/css/app.css}">
+</head>
+
+<body>
+    <div class="layout">
+        <aside class="sidebar" id="sidebar">
+            <div class="sidebar-brand">
+                <h1>RevWorkforce</h1>
+                <p>HR Management</p>
+            </div>
+            <nav class="sidebar-nav">
+                <a class="nav-link" th:href="@{/dashboard}"><span class="icon">🏠</span>Dashboard</a>
+                <div class="nav-label" style="margin-top:8px">Performance</div>
+                <a class="nav-link" th:href="@{/performance/reviews}"><span class="icon">⭐</span>My Reviews</a>
+                <a class="nav-link" th:href="@{/performance/goals}"><span class="icon">🎯</span>My Goals</a>
+                <a class="nav-link" th:href="@{/performance/team-reviews}"><span class="icon">📊</span>Team Reviews</a>
+                <a class="nav-link active" th:href="@{/performance/team-goals}"><span class="icon">🎯</span>Team
+                    Goals</a>
+                <div class="nav-label" style="margin-top:8px">Leave</div>
+                <a class="nav-link" th:href="@{/leaves}"><span class="icon">📅</span>My Leaves</a>
+                <a class="nav-link" th:href="@{/leaves/team}"><span class="icon">👥</span>Team Leaves</a>
+            </nav>
+            <div class="sidebar-footer"><button class="btn-logout" onclick="logout()">Sign Out</button></div>
+        </aside>
+        <main class="main-content">
+            <div class="topbar">
+                <div class="d-flex justify-between align-center" style="width:100%">
+                    <div class="d-flex align-center gap-12">
+                        <button class="sidebar-toggle" onclick="toggleSidebar()">☰</button>
+                        <h2>Team Goals</h2>
+                    </div>
+                    <button class="btn btn-primary" onclick="openAssignGoalModal()">+ Assign Goal</button>
+                </div>
+            </div>
+            <div class="page-content">
+                <div class="card">
+                    <div th:if="${#lists.isEmpty(goals)}"
+                        style="text-align:center;color:var(--text-muted);padding:48px">No team goals set yet.</div>
+                    <div th:each="g : ${goals}" style="padding:16px 0;border-bottom:1px solid var(--border)">
+                        <div class="d-flex justify-between align-center mb-8">
+                            <div>
+                                <div class="fw-600" th:text="${g.employeeName} + ' - ' + ${g.goalDescription}">-</div>
+                                <span th:if="${g.reviewId != null}" class="badge badge-info"
+                                    style="font-size:0.7rem;margin-top:4px;">Linked to Appr. #[[${g.reviewId}]]</span>
+                            </div>
+                            <div style="display:flex;gap:6px">
+                                <span class="badge"
+                                    th:classappend="${g.priority == 'HIGH' ? 'badge-high' : (g.priority == 'MEDIUM' ? 'badge-medium' : 'badge-low')}"
+                                    th:text="${g.priority}">-</span>
+                                <span class="badge"
+                                    th:classappend="${g.status == 'COMPLETED' ? 'badge-approved' : (g.status == 'IN_PROGRESS' ? 'badge-submitted' : 'badge-draft')}"
+                                    th:text="${g.status?.replace('_',' ')}">-</span>
+                            </div>
+                        </div>
+                        <div class="d-flex align-center gap-12 mb-8" style="margin-top:12px;">
+                            <div class="progress" style="flex:1">
+                                <div class="progress-bar" th:style="'width:' + (g.progressPercent ?: 0) + '%'"></div>
+                            </div>
+                            <div class="fs-xs text-muted" th:text="${(g.progressPercent ?: 0) + '%'}">0%</div>
+                        </div>
+                        <div style="display:flex;gap:8px;align-items:center">
+                            <span class="fs-xs text-muted" th:if="${g.deadline}"
+                                th:text="'Deadline: ' + ${g.deadline}">-</span>
+                            <button class="btn btn-ghost btn-xs" th:onclick="'openCommentGoal(' + ${g.goalId} + ')'">Add
+                                Comment</button>
+                        </div>
+                        <div th:if="${g.managerComments}" class="alert alert-info fs-xs mt-8"
+                            style="margin:0;padding:8px 12px" th:text="'Your Comment: ' + ${g.managerComments}">-</div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Manager Comment Modal -->
+    <div class="modal-overlay" id="commentGoalModal">
+        <div class="modal">
+            <div class="modal-header">
+                <div class="modal-title">Add Manager Comment</div><button class="modal-close"
+                    onclick="document.getElementById('commentGoalModal').classList.remove('open')">✕</button>
+            </div>
+            <input type="hidden" id="commentGoalId">
+            <div class="form-group"><label class="form-label">Comment</label><textarea id="managerComment"
+                    class="form-control" rows="3" placeholder="Provide feedback or notes on this goal..."></textarea>
+            </div>
+            <div style="display:flex;gap:12px;margin-top:8px">
+                <button class="btn btn-primary" onclick="submitComment()">Save Comment</button>
+                <button class="btn btn-ghost"
+                    onclick="document.getElementById('commentGoalModal').classList.remove('open')">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Assign Goal Modal -->
+    <div class="modal-overlay" id="assignGoalModal">
+        <div class="modal">
+            <div class="modal-header">
+                <div class="modal-title">Assign Goal</div>
+                <button class="modal-close"
+                    onclick="document.getElementById('assignGoalModal').classList.remove('open')">✕</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label class="form-label">Employee</label>
+                    <select id="assignEmployeeId" class="form-control">
+                        <option value="">Select Team Member</option>
+                        <option th:each="mem : ${teamMembers}" th:value="${mem.employeeId}" th:text="${mem.name}">
+                        </option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Goal Description</label>
+                    <textarea id="assignDesc" class="form-control" rows="3" required></textarea>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Priority</label>
+                    <select id="assignPriority" class="form-control">
+                        <option value="LOW">Low</option>
+                        <option value="MEDIUM" selected>Medium</option>
+                        <option value="HIGH">High</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Deadline</label>
+                    <input type="date" id="assignDeadline" class="form-control">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Link to Review Cycle (Optional)</label>
+                    <select id="assignReviewId" class="form-control">
+                        <option value="">-- None --</option>
+                        <option th:each="rev : ${teamReviews}" th:value="${rev.reviewId}"
+                            th:text="${rev.employeeName} + ' - ' + ${rev.year}"></option>
+                    </select>
+                </div>
+            </div>
+            <div class="modal-footer" style="display:flex;gap:12px;margin-top:16px;">
+                <button class="btn btn-primary" onclick="submitAssignGoal()">Assign Goal</button>
+                <button class="btn btn-ghost"
+                    onclick="document.getElementById('assignGoalModal').classList.remove('open')">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function openCommentGoal(id) {
+            document.getElementById('commentGoalId').value = id;
+            document.getElementById('commentGoalModal').classList.add('open');
+        }
+        async function submitComment() {
+            const id = document.getElementById('commentGoalId').value;
+            const comments = document.getElementById('managerComment').value;
+            const res = await fetch(`/api/performance/goals/${id}/comment?comments=${encodeURIComponent(comments)}`, { method: 'PUT', headers: getAuthHeaders() });
+            if (res.ok) { location.reload(); } else { alert('Error updating comment'); }
+        }
+
+        function openAssignGoalModal() {
+            document.getElementById('assignGoalModal').classList.add('open');
+        }
+
+        async function submitAssignGoal() {
+            const empId = document.getElementById('assignEmployeeId').value;
+            const desc = document.getElementById('assignDesc').value.trim();
+            if (!empId || !desc) { alert("Employee and Description are required"); return; }
+
+            const payload = {
+                employeeId: empId,
+                goalDescription: desc,
+                priority: document.getElementById('assignPriority').value,
+                deadline: document.getElementById('assignDeadline').value || null,
+                reviewId: document.getElementById('assignReviewId').value || null
+            };
+
+            const t = getAuthHeaders();
+            t['Content-Type'] = 'application/json';
+
+            const res = await fetch('/api/performance/goals/assign', {
+                method: 'POST',
+                headers: t,
+                body: JSON.stringify(payload)
+            });
+
+            if (res.ok) { location.reload(); } else {
+                const data = await res.json().catch(() => ({}));
+                alert(data.message || 'Error assigning goal');
+            }
+        }
+
+        function getAuthHeaders() {
+            const t = document.cookie.split(';').map(c => c.trim()).find(c => c.startsWith('JWT_TOKEN='))?.split('=')[1];
+            return t ? { 'Authorization': 'Bearer ' + t } : {};
+        }
+        function logout() { document.cookie = 'JWT_TOKEN=;expires=Thu,01 Jan 1970'; window.location.href = '/login'; }
+        function toggleSidebar() { document.getElementById('sidebar').classList.toggle('open'); }
+    </script>
+</body>
+
+</html>

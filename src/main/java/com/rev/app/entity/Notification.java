@@ -41,6 +41,6 @@ public class Notification {
 
     public enum NotificationType {
         LEAVE_APPLIED, LEAVE_APPROVED, LEAVE_REJECTED,
-        REVIEW_SUBMITTED, REVIEW_FEEDBACK, GENERAL
+        REVIEW_SUBMITTED, REVIEW_FEEDBACK, GOAL_ASSIGNED, GENERAL
     }
 }

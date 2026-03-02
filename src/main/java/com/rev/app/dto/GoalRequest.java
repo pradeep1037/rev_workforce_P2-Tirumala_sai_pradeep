@@ -15,4 +15,7 @@ public class GoalRequest {
 
     @NotBlank(message = "Priority is required")
     private String priority; // HIGH, MEDIUM, LOW
+
+    private Long employeeId;
+    private Long reviewId;
 }

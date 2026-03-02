@@ -24,6 +24,7 @@ public interface EmployeeRepository extends JpaRepository<Employee, Long> {
     List<Employee> findByDepartmentDeptId(Long deptId);
 
     @Query("SELECT e FROM Employee e WHERE " +
+            "CAST(e.employeeId AS string) LIKE CONCAT('%', :keyword, '%') OR " +
             "LOWER(e.name) LIKE LOWER(CONCAT('%', :keyword, '%')) OR " +
             "LOWER(e.email) LIKE LOWER(CONCAT('%', :keyword, '%')) OR " +
             "LOWER(e.department.deptName) LIKE LOWER(CONCAT('%', :keyword, '%')) OR " +

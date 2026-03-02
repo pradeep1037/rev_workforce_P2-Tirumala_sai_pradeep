@@ -26,9 +26,13 @@ public interface ILeaveService {
 
     LeaveBalance getLeaveBalance(Long employeeId);
 
+    List<LeaveBalance> getTeamLeaveBalances(Long managerId);
+
     List<Holiday> getHolidays();
 
     Holiday addHoliday(String name, LocalDate date);
+
+    Holiday updateHoliday(Long id, String name, LocalDate date);
 
     void deleteHoliday(Long id);
 }

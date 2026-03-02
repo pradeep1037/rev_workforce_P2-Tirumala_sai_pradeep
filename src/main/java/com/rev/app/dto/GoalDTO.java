@@ -15,4 +15,5 @@ public class GoalDTO {
     private String status;
     private Integer progressPercent;
     private String managerComments;
+    private Long reviewId;
 }

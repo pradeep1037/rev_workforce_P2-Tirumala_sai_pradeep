@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
@@ -8,86 +9,91 @@
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" th:href="@{/css/app.css}">
 </head>
+
 <body>
-<div class="login-page">
-  <div class="login-card">
-    <div class="login-logo">
-      <h1>RevWorkforce</h1>
-      <p>Human Resource Management System</p>
-    </div>
-
-    <div class="login-form">
-      <h2>Sign in to your account</h2>
-
-      <div th:if="${error}" class="alert alert-danger" th:text="${error}"></div>
-      <div th:if="${success}" class="alert alert-success" th:text="${success}"></div>
-
-      <div id="loginError" class="alert alert-danger" style="display:none"></div>
-
-      <div class="form-group">
-        <label class="form-label" for="email">Email Address</label>
-        <input id="email" type="email" class="form-control" placeholder="you@revworkforce.com" autocomplete="email">
-      </div>
-      <div class="form-group">
-        <label class="form-label" for="password">Password</label>
-        <input id="password" type="password" class="form-control" placeholder="••••••••" autocomplete="current-password">
+  <div class="login-page">
+    <div class="login-card">
+      <div class="login-logo">
+        <h1>RevWorkforce</h1>
+        <p>Human Resource Management System</p>
       </div>
 
-      <button id="loginBtn" class="btn btn-primary w-100" style="justify-content:center;margin-top:8px;" onclick="doLogin()">
-        Sign In
-      </button>
+      <div class="login-form">
+        <h2>Sign in to your account</h2>
 
-      <div style="text-align:center;margin-top:20px;font-size:0.8rem;color:var(--text-muted)">
-        Demo credentials: admin@revworkforce.com / Admin@123
+        <div th:if="${error}" class="alert alert-danger" th:text="${error}"></div>
+        <div th:if="${success}" class="alert alert-success" th:text="${success}"></div>
+
+        <div id="loginError" class="alert alert-danger" style="display:none"></div>
+
+        <div class="form-group">
+          <label class="form-label" for="email">Email Address</label>
+          <input id="email" type="email" class="form-control" placeholder="you@revworkforce.com" autocomplete="email">
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="password">Password</label>
+          <input id="password" type="password" class="form-control" placeholder="••••••••"
+            autocomplete="current-password">
+        </div>
+
+        <button id="loginBtn" class="btn btn-primary w-100" style="justify-content:center;margin-top:8px;"
+          onclick="doLogin()">
+          Sign In
+        </button>
+
+        <div style="text-align:center;margin-top:20px;font-size:0.9rem;color:var(--text-muted)">
+          Don't have an account? <a th:href="@{/register}"
+            style="color:var(--primary-color);text-decoration:none;font-weight:600;">Register here</a>
+        </div>
       </div>
     </div>
   </div>
-</div>
 
-<script>
-  async function doLogin() {
-    const btn = document.getElementById('loginBtn');
-    const errBox = document.getElementById('loginError');
-    const email = document.getElementById('email').value.trim();
-    const password = document.getElementById('password').value;
+  <script>
+    async function doLogin() {
+      const btn = document.getElementById('loginBtn');
+      const errBox = document.getElementById('loginError');
+      const email = document.getElementById('email').value.trim();
+      const password = document.getElementById('password').value;
 
-    errBox.style.display = 'none';
-    if (!email || !password) { showError('Please enter email and password.'); return; }
+      errBox.style.display = 'none';
+      if (!email || !password) { showError('Please enter email and password.'); return; }
 
-    btn.textContent = 'Signing in…';
-    btn.disabled = true;
+      btn.textContent = 'Signing in…';
+      btn.disabled = true;
 
-    try {
-      const res = await fetch('/api/auth/login', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, password })
-      });
+      try {
+        const res = await fetch('/api/auth/login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email, password })
+        });
 
-      if (!res.ok) {
-        const data = await res.json().catch(() => ({}));
-        throw new Error(data.message || 'Invalid credentials');
+        if (!res.ok) {
+          const data = await res.json().catch(() => ({}));
+          throw new Error(data.message || 'Invalid credentials');
+        }
+
+        const data = await res.json();
+        document.cookie = `JWT_TOKEN=${data.token}; path=/; SameSite=Strict`;
+        window.location.href = '/dashboard';
+      } catch (e) {
+        showError(e.message);
+        btn.textContent = 'Sign In';
+        btn.disabled = false;
       }
-
-      const data = await res.json();
-      document.cookie = `JWT_TOKEN=${data.token}; path=/; SameSite=Strict`;
-      window.location.href = '/dashboard';
-    } catch (e) {
-      showError(e.message);
-      btn.textContent = 'Sign In';
-      btn.disabled = false;
     }
-  }
 
-  function showError(msg) {
-    const el = document.getElementById('loginError');
-    el.textContent = msg;
-    el.style.display = 'block';
-  }
+    function showError(msg) {
+      const el = document.getElementById('loginError');
+      el.textContent = msg;
+      el.style.display = 'block';
+    }
 
-  document.addEventListener('keydown', e => {
-    if (e.key === 'Enter') doLogin();
-  });
-</script>
+    document.addEventListener('keydown', e => {
+      if (e.key === 'Enter') doLogin();
+    });
+  </script>
 </body>
+
 </html>

@@ -43,6 +43,10 @@ public class Goal {
     @Column(name = "MANAGER_COMMENTS", length = 1000)
     private String managerComments;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "REVIEW_ID")
+    private PerformanceReview performanceReview;
+
     public enum Priority {
         HIGH, MEDIUM, LOW
     }
