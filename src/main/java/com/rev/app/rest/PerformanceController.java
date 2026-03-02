@@ -70,6 +70,20 @@ public class PerformanceController {
                 .body(performanceService.createGoal(current.getEmployeeId(), req, current));
     }
 
+    @PostMapping("/goals/assign")
+    @PreAuthorize("hasAnyRole('MANAGER','ADMIN')")
+    public ResponseEntity<GoalDTO> assignGoal(@Valid @RequestBody GoalRequest req) {
+        Employee current = authService.getCurrentEmployee();
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(performanceService.assignGoal(current.getEmployeeId(), req, current));
+    }
+
+    @PutMapping("/goals/{id}/link-review")
+    public ResponseEntity<GoalDTO> linkGoalToReview(@PathVariable Long id, @RequestParam Long reviewId) {
+        Employee current = authService.getCurrentEmployee();
+        return ResponseEntity.ok(performanceService.linkGoalToReview(id, reviewId, current));
+    }
+
     @PutMapping("/goals/{id}/progress")
     public ResponseEntity<GoalDTO> updateGoalProgress(@PathVariable Long id,
             @RequestParam Integer progress,
