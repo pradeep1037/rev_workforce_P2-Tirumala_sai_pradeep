@@ -25,6 +25,10 @@ public interface IPerformanceService {
     // Goals
     GoalDTO createGoal(Long employeeId, GoalRequest req, Employee employee);
 
+    GoalDTO assignGoal(Long managerId, GoalRequest req, Employee manager);
+
+    GoalDTO linkGoalToReview(Long goalId, Long reviewId, Employee employee);
+
     GoalDTO updateGoalProgress(Long goalId, Integer progress, String status, Employee employee);
 
     GoalDTO addManagerComment(Long goalId, String comments, Employee manager);
