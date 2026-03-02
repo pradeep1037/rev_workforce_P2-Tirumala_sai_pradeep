@@ -114,6 +114,7 @@ public class WebController {
     public String myGoals(Model model) {
         Employee user = currentUser();
         model.addAttribute("goals", performanceService.getMyGoals(user.getEmployeeId()));
+        model.addAttribute("myReviews", performanceService.getMyReviews(user.getEmployeeId()));
         model.addAttribute("unreadCount", notificationService.getUnreadCount(user.getEmployeeId()));
         return "performance/my-goals";
     }
@@ -130,6 +131,8 @@ public class WebController {
     public String teamGoals(Model model) {
         Employee user = currentUser();
         model.addAttribute("goals", performanceService.getTeamGoals(user.getEmployeeId()));
+        model.addAttribute("teamMembers", employeeService.getDirectReportees(user.getEmployeeId()));
+        model.addAttribute("teamReviews", performanceService.getTeamReviews(user.getEmployeeId()));
         model.addAttribute("unreadCount", notificationService.getUnreadCount(user.getEmployeeId()));
         return "performance/team-goals";
     }
