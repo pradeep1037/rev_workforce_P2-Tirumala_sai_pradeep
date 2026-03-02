@@ -32,9 +32,12 @@
         </aside>
         <main class="main-content">
             <div class="topbar">
-                <div class="d-flex align-center gap-12">
-                    <button class="sidebar-toggle" onclick="toggleSidebar()">☰</button>
-                    <h2>Team Goals</h2>
+                <div class="d-flex justify-between align-center" style="width:100%">
+                    <div class="d-flex align-center gap-12">
+                        <button class="sidebar-toggle" onclick="toggleSidebar()">☰</button>
+                        <h2>Team Goals</h2>
+                    </div>
+                    <button class="btn btn-primary" onclick="openAssignGoalModal()">+ Assign Goal</button>
                 </div>
             </div>
             <div class="page-content">
@@ -45,6 +48,8 @@
                         <div class="d-flex justify-between align-center mb-8">
                             <div>
                                 <div class="fw-600" th:text="${g.employeeName} + ' - ' + ${g.goalDescription}">-</div>
+                                <span th:if="${g.reviewId != null}" class="badge badge-info"
+                                    style="font-size:0.7rem;margin-top:4px;">Linked to Appr. #[[${g.reviewId}]]</span>
                             </div>
                             <div style="display:flex;gap:6px">
                                 <span class="badge"
@@ -55,7 +60,7 @@
                                     th:text="${g.status?.replace('_',' ')}">-</span>
                             </div>
                         </div>
-                        <div class="d-flex align-center gap-12 mb-8">
+                        <div class="d-flex align-center gap-12 mb-8" style="margin-top:12px;">
                             <div class="progress" style="flex:1">
                                 <div class="progress-bar" th:style="'width:' + (g.progressPercent ?: 0) + '%'"></div>
                             </div>
@@ -94,6 +99,56 @@
         </div>
     </div>
 
+    <!-- Assign Goal Modal -->
+    <div class="modal-overlay" id="assignGoalModal">
+        <div class="modal">
+            <div class="modal-header">
+                <div class="modal-title">Assign Goal</div>
+                <button class="modal-close"
+                    onclick="document.getElementById('assignGoalModal').classList.remove('open')">✕</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label class="form-label">Employee</label>
+                    <select id="assignEmployeeId" class="form-control">
+                        <option value="">Select Team Member</option>
+                        <option th:each="mem : ${teamMembers}" th:value="${mem.employeeId}" th:text="${mem.name}">
+                        </option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Goal Description</label>
+                    <textarea id="assignDesc" class="form-control" rows="3" required></textarea>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Priority</label>
+                    <select id="assignPriority" class="form-control">
+                        <option value="LOW">Low</option>
+                        <option value="MEDIUM" selected>Medium</option>
+                        <option value="HIGH">High</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Deadline</label>
+                    <input type="date" id="assignDeadline" class="form-control">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Link to Review Cycle (Optional)</label>
+                    <select id="assignReviewId" class="form-control">
+                        <option value="">-- None --</option>
+                        <option th:each="rev : ${teamReviews}" th:value="${rev.reviewId}"
+                            th:text="${rev.employeeName} + ' - ' + ${rev.year}"></option>
+                    </select>
+                </div>
+            </div>
+            <div class="modal-footer" style="display:flex;gap:12px;margin-top:16px;">
+                <button class="btn btn-primary" onclick="submitAssignGoal()">Assign Goal</button>
+                <button class="btn btn-ghost"
+                    onclick="document.getElementById('assignGoalModal').classList.remove('open')">Cancel</button>
+            </div>
+        </div>
+    </div>
+
     <script>
         function openCommentGoal(id) {
             document.getElementById('commentGoalId').value = id;
@@ -105,7 +160,43 @@
             const res = await fetch(`/api/performance/goals/${id}/comment?comments=${encodeURIComponent(comments)}`, { method: 'PUT', headers: getAuthHeaders() });
             if (res.ok) { location.reload(); } else { alert('Error updating comment'); }
         }
-        function getAuthHeaders() { const t = document.cookie.split(';').map(c => c.trim()).find(c => c.startsWith('JWT_TOKEN='))?.split('=')[1]; return t ? { 'Authorization': 'Bearer ' + t } : {}; }
+
+        function openAssignGoalModal() {
+            document.getElementById('assignGoalModal').classList.add('open');
+        }
+
+        async function submitAssignGoal() {
+            const empId = document.getElementById('assignEmployeeId').value;
+            const desc = document.getElementById('assignDesc').value.trim();
+            if (!empId || !desc) { alert("Employee and Description are required"); return; }
+
+            const payload = {
+                employeeId: empId,
+                goalDescription: desc,
+                priority: document.getElementById('assignPriority').value,
+                deadline: document.getElementById('assignDeadline').value || null,
+                reviewId: document.getElementById('assignReviewId').value || null
+            };
+
+            const t = getAuthHeaders();
+            t['Content-Type'] = 'application/json';
+
+            const res = await fetch('/api/performance/goals/assign', {
+                method: 'POST',
+                headers: t,
+                body: JSON.stringify(payload)
+            });
+
+            if (res.ok) { location.reload(); } else {
+                const data = await res.json().catch(() => ({}));
+                alert(data.message || 'Error assigning goal');
+            }
+        }
+
+        function getAuthHeaders() {
+            const t = document.cookie.split(';').map(c => c.trim()).find(c => c.startsWith('JWT_TOKEN='))?.split('=')[1];
+            return t ? { 'Authorization': 'Bearer ' + t } : {};
+        }
         function logout() { document.cookie = 'JWT_TOKEN=;expires=Thu,01 Jan 1970'; window.location.href = '/login'; }
         function toggleSidebar() { document.getElementById('sidebar').classList.toggle('open'); }
     </script>

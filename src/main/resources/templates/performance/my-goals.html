@@ -41,7 +41,11 @@
                         style="text-align:center;color:var(--text-muted);padding:48px">No goals set yet.</div>
                     <div th:each="g : ${goals}" style="padding:16px 0;border-bottom:1px solid var(--border)">
                         <div class="d-flex justify-between align-center mb-8">
-                            <div class="fw-600" th:text="${g.goalDescription}">-</div>
+                            <div>
+                                <div class="fw-600" th:text="${g.goalDescription}">-</div>
+                                <span th:if="${g.reviewId != null}" class="badge badge-info"
+                                    style="font-size:0.7rem;margin-top:4px;">Linked to Appr. #[[${g.reviewId}]]</span>
+                            </div>
                             <div style="display:flex;gap:6px">
                                 <span class="badge"
                                     th:classappend="${g.priority == 'HIGH' ? 'badge-high' : (g.priority == 'MEDIUM' ? 'badge-medium' : 'badge-low')}"
@@ -92,6 +96,14 @@
                     </select>
                 </div>
             </div>
+            <div class="form-group">
+                <label class="form-label">Link to Review Cycle (Optional)</label>
+                <select id="goalReviewId" class="form-control">
+                    <option value="">-- None --</option>
+                    <option th:each="rev : ${myReviews}" th:value="${rev.reviewId}"
+                        th:text="'Appraisal Year: ' + ${rev.year}"></option>
+                </select>
+            </div>
             <div style="display:flex;gap:12px;margin-top:8px">
                 <button class="btn btn-primary" onclick="saveGoal()">Save Goal</button>
                 <button class="btn btn-ghost"
@@ -136,7 +148,12 @@
             document.getElementById('updateGoalModal').classList.add('open');
         }
         async function saveGoal() {
-            const body = { goalDescription: document.getElementById('goalDesc').value, deadline: document.getElementById('goalDeadline').value || null, priority: document.getElementById('goalPriority').value };
+            const body = {
+                goalDescription: document.getElementById('goalDesc').value,
+                deadline: document.getElementById('goalDeadline').value || null,
+                priority: document.getElementById('goalPriority').value,
+                reviewId: document.getElementById('goalReviewId').value || null
+            };
             const res = await fetch('/api/performance/goals', { method: 'POST', headers: { 'Content-Type': 'application/json', ...getAuthHeaders() }, body: JSON.stringify(body) });
             if (res.ok) { location.reload(); }
             else { const d = await res.json(); alert(d.message || 'Error'); }
