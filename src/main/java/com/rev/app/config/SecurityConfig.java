@@ -52,28 +52,22 @@ public class SecurityConfig {
         http
                 .csrf(AbstractHttpConfigurer::disable)
 
-                // ✅ FIXED: Allow session for Thymeleaf pages
+
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED))
 
                 .authorizeHttpRequests(auth -> auth
 
-                        // =========================
-                        // Public
-                        // =========================
+
                         .requestMatchers("/api/auth/**").permitAll()
                         .requestMatchers("/css/**", "/js/**", "/images/**", "/webjars/**").permitAll()
                         .requestMatchers("/login", "/", "/register").permitAll()
 
-                        // =========================
-                        // Page Access (Thymeleaf)
-                        // =========================
+
                         .requestMatchers("/admin/**").hasRole("ADMIN")
                         .requestMatchers("/manager/**").hasAnyRole("MANAGER", "ADMIN")
                         .requestMatchers("/leaves/**").hasAnyRole("EMPLOYEE", "MANAGER", "ADMIN")
 
-                        // =========================
-                        // API Access (JWT Protected)
-                        // =========================
+
                         .requestMatchers("/api/admin/**").hasRole("ADMIN")
                         .requestMatchers("/api/manager/**").hasAnyRole("MANAGER", "ADMIN")
                         .requestMatchers("/api/**").authenticated()

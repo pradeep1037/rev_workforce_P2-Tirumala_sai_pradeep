@@ -11,10 +11,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 
-/**
- * Seeds the database with initial data on first run.
- * Idempotent - checks before inserting.
- */
+
 @Component
 @RequiredArgsConstructor
 @Slf4j
@@ -56,7 +53,7 @@ public class DataInitializer implements CommandLineRunner {
 
         // Admin Employee
         Employee admin = new Employee();
-        admin.setName("Admin User");
+        admin.setName("Admin");
         admin.setEmail("admin@revworkforce.com");
         admin.setPassword(passwordEncoder.encode("Admin@123"));
         admin.setRole(Employee.Role.ADMIN);
@@ -72,7 +69,7 @@ public class DataInitializer implements CommandLineRunner {
 
         // Manager Employee
         Employee manager = new Employee();
-        manager.setName("RaviKumar Manager");
+        manager.setName("RaviKumar");
         manager.setEmail("manager@revworkforce.com");
         manager.setPassword(passwordEncoder.encode("Manager@123"));
         manager.setRole(Employee.Role.MANAGER);

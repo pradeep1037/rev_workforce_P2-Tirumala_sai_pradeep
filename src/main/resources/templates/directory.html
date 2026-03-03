@@ -6,110 +6,201 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <title>Employee Directory – RevWorkforce</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" th:href="@{/css/app.css}">
 </head>
 
-<body>
-    <div class="layout">
-        <aside class="sidebar" id="sidebar">
-            <div class="sidebar-brand">
-                <h1>RevWorkforce</h1>
-                <p>HR Management</p>
+<body class="bg-dark text-light">
+    <div class="layout d-flex min-vh-100">
+        <!-- SIDEBAR -->
+        <aside class="sidebar bg-surface border-end border-secondary d-flex flex-column position-fixed h-100"
+            id="sidebar" style="width: 260px; z-index: 1000; transition: transform 0.3s ease;">
+            <div class="sidebar-brand p-4 border-bottom border-secondary">
+                <h1 class="h4 fw-bolder bg-gradient-text mb-0">RevWorkforce</h1>
+                <p class="small text-muted mt-1 mb-0">HR Management System</p>
             </div>
-            <nav class="sidebar-nav">
-                <a class="nav-link" th:href="@{/dashboard}"><span class="icon">🏠</span>Dashboard</a>
-                <a class="nav-link" th:href="@{/profile}"><span class="icon">👤</span>My Profile</a>
-                <a class="nav-link active" th:href="@{/directory}"><span class="icon">📋</span>Directory</a>
-                <a class="nav-link" th:href="@{/notifications}"><span class="icon">🔔</span>Notifications
-                    <span class="nav-badge" th:if="${unreadCount > 0}" th:text="${unreadCount}"></span>
-                </a>
-                <div class="nav-label" style="margin-top:8px">Leave</div>
-                <a class="nav-link" th:href="@{/leaves}"><span class="icon">📅</span>My Leaves</a>
-                <div class="nav-label" style="margin-top:8px">Performance</div>
-                <a class="nav-link" th:href="@{/performance/reviews}"><span class="icon">⭐</span>My Reviews</a>
-                <a class="nav-link" th:href="@{/performance/goals}"><span class="icon">🎯</span>My Goals</a>
+            <nav class="sidebar-nav flex-grow-1 p-3 overflow-auto">
+                <div class="nav-section mb-3">
+                    <div class="text-uppercase small fw-bold text-muted mb-2 px-2" style="letter-spacing: 0.1em;">Main
+                    </div>
+                    <a class="nav-link text-muted d-flex align-items-center gap-2 px-3 py-2 rounded mb-1 hover-surface2"
+                        th:href="@{/dashboard}"><span class="icon">🏠</span> Dashboard</a>
+                    <a class="nav-link text-muted d-flex align-items-center gap-2 px-3 py-2 rounded mb-1 hover-surface2"
+                        th:href="@{/profile}"><span class="icon">👤</span> My Profile</a>
+                    <a class="nav-link text-muted d-flex align-items-center gap-2 px-3 py-2 rounded mb-1 bg-primary text-white fw-medium"
+                        th:href="@{/directory}"><span class="icon">📋</span> Directory</a>
+                    <a class="nav-link text-muted d-flex align-items-center gap-2 px-3 py-2 rounded mb-1 hover-surface2"
+                        th:href="@{/notifications}">
+                        <span class="icon">🔔</span> Notifications
+                        <span class="badge bg-danger ms-auto rounded-pill px-2" th:if="${unreadCount > 0}"
+                            th:text="${unreadCount}"></span>
+                    </a>
+                </div>
+                <div class="nav-section mb-3">
+                    <div class="text-uppercase small fw-bold text-muted mb-2 px-2" style="letter-spacing: 0.1em;">Leave
+                    </div>
+                    <a class="nav-link text-muted d-flex align-items-center gap-2 px-3 py-2 rounded mb-1 hover-surface2"
+                        th:href="@{/leaves}"><span class="icon">📅</span> My Leaves</a>
+                </div>
+                <div class="nav-section mb-3">
+                    <div class="text-uppercase small fw-bold text-muted mb-2 px-2" style="letter-spacing: 0.1em;">
+                        Performance</div>
+                    <a class="nav-link text-muted d-flex align-items-center gap-2 px-3 py-2 rounded mb-1 hover-surface2"
+                        th:href="@{/performance/reviews}"><span class="icon">⭐</span> My Reviews</a>
+                    <a class="nav-link text-muted d-flex align-items-center gap-2 px-3 py-2 rounded mb-1 hover-surface2"
+                        th:href="@{/performance/goals}"><span class="icon">🎯</span> My Goals</a>
+                </div>
             </nav>
-            <div class="sidebar-footer"><button class="btn-logout" onclick="logout()">Sign Out</button></div>
+            <div class="sidebar-footer p-3 border-top border-secondary">
+                <button class="btn btn-outline-secondary text-muted w-100 border-0 bg-surface2 hover-danger"
+                    onclick="logout()">Sign Out</button>
+            </div>
         </aside>
-        <main class="main-content">
-            <div class="topbar">
-                <div class="d-flex align-center gap-12">
-                    <button class="sidebar-toggle" onclick="toggleSidebar()">☰</button>
-                    <h2>Employee Directory</h2>
+
+        <!-- MAIN CONTENT -->
+        <main class="main-content flex-grow-1 d-flex flex-column min-vh-100" style="margin-left: 260px;">
+            <div
+                class="topbar bg-surface border-bottom border-secondary p-3 d-flex align-items-center justify-content-between sticky-top z-3">
+                <div class="d-flex align-items-center gap-3">
+                    <button class="btn btn-outline-secondary d-md-none p-1 border-0 text-light"
+                        onclick="toggleSidebar()">☰</button>
+                    <h2 class="h5 mb-0 fw-semibold text-light">Employee Directory</h2>
                 </div>
             </div>
-            <div class="page-content">
+
+            <div class="page-content container-fluid p-4">
                 <!-- SEARCH -->
-                <form th:action="@{/directory}" method="get" class="search-bar">
-                    <input type="text" name="search" class="form-control" th:value="${search}"
-                        placeholder="Search by name, email, department, designation…">
-                    <button type="submit" class="btn btn-primary">Search</button>
-                    <a th:href="@{/directory}" class="btn btn-ghost">Clear</a>
+                <form th:action="@{/directory}" method="get" class="d-flex gap-2 mb-4">
+                    <input type="text" name="search" class="form-control bg-surface2 border-secondary text-light w-50"
+                        th:value="${search}" placeholder="Search by name, email, department, designation…">
+                    <button type="submit" class="btn btn-primary px-4 fw-medium">Search</button>
+                    <a th:href="@{/directory}"
+                        class="btn btn-outline-secondary border-secondary text-light hover-surface2 px-4 fw-medium">Clear</a>
                 </form>
 
                 <!-- LIST TABLE -->
-                <div class="card" style="overflow-x: auto; margin-top: 16px;">
-                    <table class="table" style="width: 100%; border-collapse: collapse;">
-                        <thead>
-                            <tr style="border-bottom: 1px solid var(--border-color); text-align: left;">
-                                <th
-                                    style="padding: 12px 16px; font-weight: 600; color: var(--text-muted); font-size: 0.85rem; text-transform: uppercase;">
-                                    Employee</th>
-                                <th
-                                    style="padding: 12px 16px; font-weight: 600; color: var(--text-muted); font-size: 0.85rem; text-transform: uppercase;">
-                                    Department</th>
-                                <th
-                                    style="padding: 12px 16px; font-weight: 600; color: var(--text-muted); font-size: 0.85rem; text-transform: uppercase;">
-                                    Role</th>
-                                <th
-                                    style="padding: 12px 16px; font-weight: 600; color: var(--text-muted); font-size: 0.85rem; text-transform: uppercase;">
-                                    Manager</th>
-                                <th
-                                    style="padding: 12px 16px; font-weight: 600; color: var(--text-muted); font-size: 0.85rem; text-transform: uppercase;">
-                                    Phone</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr th:if="${#lists.isEmpty(employees)}">
-                                <td colspan="5" style="text-align:center;color:var(--text-muted);padding:48px 0">
-                                    No employees found.
-                                </td>
-                            </tr>
-                            <tr th:each="emp : ${employees}"
-                                style="border-bottom: 1px solid var(--border-color); transition: background-color 0.2s;">
-                                <td style="padding: 12px 16px;">
-                                    <div style="display:flex;align-items:center;gap:12px;">
-                                        <div style="width:40px;height:40px;border-radius:50%;background:linear-gradient(135deg,var(--primary),var(--accent));display:flex;align-items:center;justify-content:center;font-weight:700;color:white;font-size:1rem;flex-shrink:0"
-                                            th:text="${#strings.substring(emp.name,0,1)}">A</div>
-                                        <div>
-                                            <div class="fw-600" style="color: var(--text-color);" th:text="${emp.name}">
-                                                Name</div>
-                                            <div class="fs-xs text-muted" th:text="${emp.email}">email</div>
+                <div class="card bg-surface border-secondary rounded-4 shadow-sm w-100 overflow-hidden">
+                    <div class="table-responsive">
+                        <table class="table table-dark table-hover mb-0 align-middle">
+                            <thead class="table-dark text-muted small text-uppercase" style="letter-spacing: 0.05em;">
+                                <tr>
+                                    <th class="ps-4 py-3 fw-semibold border-bottom border-secondary bg-transparent">
+                                        Employee</th>
+                                    <th class="py-3 fw-semibold border-bottom border-secondary bg-transparent">
+                                        Department</th>
+                                    <th class="py-3 fw-semibold border-bottom border-secondary bg-transparent">Role</th>
+                                    <th class="py-3 fw-semibold border-bottom border-secondary bg-transparent">Manager
+                                    </th>
+                                    <th class="pe-4 py-3 fw-semibold border-bottom border-secondary bg-transparent">
+                                        Phone</th>
+                                </tr>
+                            </thead>
+                            <tbody class="border-top-0">
+                                <tr th:if="${#lists.isEmpty(employees)}">
+                                    <td colspan="5"
+                                        class="text-center text-muted py-5 border-bottom border-secondary bg-transparent">
+                                        No employees found.
+                                    </td>
+                                </tr>
+                                <tr th:each="emp : ${employees}"
+                                    class="border-bottom border-secondary bg-transparent custom-table-row">
+                                    <td class="ps-4 py-3 bg-transparent">
+                                        <div class="d-flex align-items-center gap-3">
+                                            <div class="rounded-circle d-flex align-items-center justify-content-center fw-bold text-white flex-shrink-0"
+                                                style="width: 40px; height: 40px; background: linear-gradient(135deg, var(--primary), var(--accent));"
+                                                th:text="${#strings.substring(emp.name,0,1)}">A</div>
+                                            <div>
+                                                <div class="fw-semibold text-light" th:text="${emp.name}">Name</div>
+                                                <div class="small text-muted" th:text="${emp.email}">email</div>
+                                            </div>
                                         </div>
-                                    </div>
-                                </td>
-                                <td style="padding: 12px 16px; color: var(--text-color); font-size: 0.95rem;"
-                                    th:text="${emp.departmentName ?: '-'}">-</td>
-                                <td style="padding: 12px 16px;">
-                                    <span class="badge"
-                                        th:classappend="${emp.role == 'ADMIN' ? 'badge-admin' : (emp.role == 'MANAGER' ? 'badge-manager' : 'badge-employee')}"
-                                        th:text="${emp.role}">-</span>
-                                </td>
-                                <td style="padding: 12px 16px; color: var(--text-color); font-size: 0.95rem;"
-                                    th:text="${emp.managerName ?: 'None'}">-</td>
-                                <td style="padding: 12px 16px; color: var(--text-color); font-size: 0.95rem;"
-                                    th:text="${emp.phone ?: '-'}">-</td>
-                            </tr>
-                        </tbody>
-                    </table>
+                                    </td>
+                                    <td class="py-3 text-light bg-transparent" th:text="${emp.departmentName ?: '-'}">-
+                                    </td>
+                                    <td class="py-3 bg-transparent">
+                                        <span class="badge px-3 py-2 rounded-pill fw-semibold"
+                                            th:classappend="${emp.role == 'ADMIN' ? 'bg-indigo bg-opacity-25 text-indigo' : (emp.role == 'MANAGER' ? 'bg-cyan bg-opacity-25 text-cyan' : 'bg-primary bg-opacity-25 text-primary-light')}"
+                                            th:text="${emp.role}" style="letter-spacing: 0.05em;">-</span>
+                                    </td>
+                                    <td class="py-3 text-light bg-transparent" th:text="${emp.managerName ?: 'None'}">-
+                                    </td>
+                                    <td class="pe-4 py-3 text-light bg-transparent" th:text="${emp.phone ?: '-'}">-</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
             </div>
         </main>
     </div>
+
+    <!-- Bootstrap Bundle with Popper -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
     <script>
         function logout() { document.cookie = 'JWT_TOKEN=;expires=Thu,01 Jan 1970'; window.location.href = '/login'; }
-        function toggleSidebar() { document.getElementById('sidebar').classList.toggle('open'); }
+        function toggleSidebar() {
+            const sidebar = document.getElementById('sidebar');
+            if (sidebar.style.transform === 'translateX(0px)' || sidebar.style.transform === '') {
+                sidebar.style.transform = 'translateX(-100%)';
+            } else {
+                sidebar.style.transform = 'translateX(0px)';
+            }
+        }
     </script>
+
+    <style>
+        .hover-surface2:hover {
+            background-color: var(--surface2) !important;
+            color: white !important;
+        }
+
+        .hover-danger:hover {
+            background-color: var(--danger) !important;
+            color: white !important;
+        }
+
+        .bg-gradient-text {
+            background: linear-gradient(135deg, var(--primary-light), var(--accent));
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .bg-indigo {
+            background-color: #818cf8 !important;
+        }
+
+        .text-indigo {
+            color: #a5b4fc !important;
+        }
+
+        .bg-cyan {
+            background-color: #06b6d4 !important;
+        }
+
+        .text-cyan {
+            color: #67e8f9 !important;
+        }
+
+        .text-primary-light {
+            color: #818cf8 !important;
+        }
+
+        .custom-table-row:hover>td {
+            background-color: rgba(255, 255, 255, 0.02) !important;
+        }
+
+        @media (max-width: 768px) {
+            .sidebar {
+                transform: translateX(-100%);
+            }
+
+            .main-content {
+                margin-left: 0 !important;
+            }
+        }
+    </style>
 </body>
 
 </html>

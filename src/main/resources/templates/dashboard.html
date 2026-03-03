@@ -7,149 +7,251 @@
     <title>Dashboard – RevWorkforce</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" th:href="@{/css/app.css}">
 </head>
 
-<body>
-    <div class="layout">
+<body class="bg-dark text-light">
+    <div class="layout d-flex min-vh-100">
         <!-- SIDEBAR -->
-        <aside class="sidebar" id="sidebar">
-            <div class="sidebar-brand">
-                <h1>RevWorkforce</h1>
-                <p>HR Management System</p>
+        <aside class="sidebar bg-surface border-end border-secondary d-flex flex-column position-fixed h-100"
+            id="sidebar" style="width: 260px; z-index: 1000; transition: transform 0.3s ease;">
+            <div class="sidebar-brand p-4 border-bottom border-secondary">
+                <h1 class="h4 fw-bolder bg-gradient-text mb-0">RevWorkforce</h1>
+                <p class="small text-muted mt-1 mb-0">HR Management System</p>
             </div>
-            <nav class="sidebar-nav">
-                <div class="nav-section">
-                    <div class="nav-label">Main</div>
-                    <a class="nav-link active" th:href="@{/dashboard}"><span class="icon">🏠</span> Dashboard</a>
-                    <a class="nav-link" th:href="@{/profile}"><span class="icon">👤</span> My Profile</a>
-                    <a class="nav-link" th:href="@{/directory}"><span class="icon">📋</span> Directory</a>
-                    <a class="nav-link" th:href="@{/notifications}">
+            <nav class="sidebar-nav flex-grow-1 p-3 overflow-auto">
+                <div class="nav-section mb-3">
+                    <div class="text-uppercase small fw-bold text-muted mb-2 px-2" style="letter-spacing: 0.1em;">Main
+                    </div>
+                    <a class="nav-link text-muted d-flex align-items-center gap-2 px-3 py-2 rounded mb-1 bg-primary text-white fw-medium"
+                        th:href="@{/dashboard}"><span class="icon">🏠</span> Dashboard</a>
+                    <a class="nav-link text-muted d-flex align-items-center gap-2 px-3 py-2 rounded mb-1 hover-surface2"
+                        th:href="@{/profile}"><span class="icon">👤</span> My Profile</a>
+                    <a class="nav-link text-muted d-flex align-items-center gap-2 px-3 py-2 rounded mb-1 hover-surface2"
+                        th:href="@{/directory}"><span class="icon">📋</span> Directory</a>
+                    <a class="nav-link text-muted d-flex align-items-center gap-2 px-3 py-2 rounded mb-1 hover-surface2"
+                        th:href="@{/notifications}">
                         <span class="icon">🔔</span> Notifications
-                        <span class="nav-badge" th:if="${unreadCount > 0}" th:text="${unreadCount}"></span>
+                        <span class="badge bg-danger ms-auto rounded-pill px-2" th:if="${unreadCount > 0}"
+                            th:text="${unreadCount}"></span>
                     </a>
                 </div>
-                <div class="nav-section">
-                    <div class="nav-label">Leave</div>
-                    <a class="nav-link" th:href="@{/leaves}"><span class="icon">📅</span> My Leaves</a>
-                    <a class="nav-link" th:href="@{/leaves/apply}"><span class="icon">➕</span> Apply Leave</a>
-                    <a class="nav-link" sec:authorize="hasAnyRole('MANAGER','ADMIN')" th:href="@{/leaves/team}"><span
+                <div class="nav-section mb-3">
+                    <div class="text-uppercase small fw-bold text-muted mb-2 px-2" style="letter-spacing: 0.1em;">Leave
+                    </div>
+                    <a class="nav-link text-muted d-flex align-items-center gap-2 px-3 py-2 rounded mb-1 hover-surface2"
+                        th:href="@{/leaves}"><span class="icon">📅</span> My Leaves</a>
+                    <a class="nav-link text-muted d-flex align-items-center gap-2 px-3 py-2 rounded mb-1 hover-surface2"
+                        th:href="@{/leaves/apply}"><span class="icon">➕</span> Apply Leave</a>
+                    <a class="nav-link text-muted d-flex align-items-center gap-2 px-3 py-2 rounded mb-1 hover-surface2"
+                        sec:authorize="hasAnyRole('MANAGER','ADMIN')" th:href="@{/leaves/team}"><span
                             class="icon">👥</span> Team Leaves</a>
                 </div>
-                <div class="nav-section">
-                    <div class="nav-label">Performance</div>
-                    <a class="nav-link" th:href="@{/performance/reviews}"><span class="icon">⭐</span> My Reviews</a>
-                    <a class="nav-link" th:href="@{/performance/goals}"><span class="icon">🎯</span> My Goals</a>
-                    <a class="nav-link" sec:authorize="hasAnyRole('MANAGER','ADMIN')"
-                        th:href="@{/performance/team-reviews}"><span class="icon">📊</span> Team Reviews</a>
-                    <a class="nav-link" sec:authorize="hasAnyRole('MANAGER','ADMIN')"
-                        th:href="@{/performance/team-goals}"><span class="icon">🎯</span> Team Goals</a>
+                <div class="nav-section mb-3">
+                    <div class="text-uppercase small fw-bold text-muted mb-2 px-2" style="letter-spacing: 0.1em;">
+                        Performance</div>
+                    <a class="nav-link text-muted d-flex align-items-center gap-2 px-3 py-2 rounded mb-1 hover-surface2"
+                        th:href="@{/performance/reviews}"><span class="icon">⭐</span> My Reviews</a>
+                    <a class="nav-link text-muted d-flex align-items-center gap-2 px-3 py-2 rounded mb-1 hover-surface2"
+                        th:href="@{/performance/goals}"><span class="icon">🎯</span> My Goals</a>
+                    <a class="nav-link text-muted d-flex align-items-center gap-2 px-3 py-2 rounded mb-1 hover-surface2"
+                        sec:authorize="hasAnyRole('MANAGER','ADMIN')" th:href="@{/performance/team-reviews}"><span
+                            class="icon">📊</span> Team Reviews</a>
+                    <a class="nav-link text-muted d-flex align-items-center gap-2 px-3 py-2 rounded mb-1 hover-surface2"
+                        sec:authorize="hasAnyRole('MANAGER','ADMIN')" th:href="@{/performance/team-goals}"><span
+                            class="icon">🎯</span> Team Goals</a>
                 </div>
-                <div class="nav-section" sec:authorize="hasRole('ADMIN')">
-                    <div class="nav-label">Administration</div>
-                    <a class="nav-link" th:href="@{/admin/employees}"><span class="icon">🏢</span> Employees</a>
-                    <a class="nav-link" th:href="@{/admin/departments}"><span class="icon">⚙️</span> Departments</a>
-                    <a class="nav-link" th:href="@{/admin/leaves}"><span class="icon">📑</span> All Leaves</a>
-                    <a class="nav-link" th:href="@{/admin/announcements}"><span class="icon">📢</span> Announcements</a>
-                    <a class="nav-link" th:href="@{/admin/audit-logs}"><span class="icon">🔍</span> Audit Logs</a>
+                <div class="nav-section mb-3" sec:authorize="hasRole('ADMIN')">
+                    <div class="text-uppercase small fw-bold text-muted mb-2 px-2" style="letter-spacing: 0.1em;">
+                        Administration</div>
+                    <a class="nav-link text-muted d-flex align-items-center gap-2 px-3 py-2 rounded mb-1 hover-surface2"
+                        th:href="@{/admin/employees}"><span class="icon">🏢</span> Employees</a>
+                    <a class="nav-link text-muted d-flex align-items-center gap-2 px-3 py-2 rounded mb-1 hover-surface2"
+                        th:href="@{/admin/departments}"><span class="icon">⚙️</span> Departments</a>
+                    <a class="nav-link text-muted d-flex align-items-center gap-2 px-3 py-2 rounded mb-1 hover-surface2"
+                        th:href="@{/admin/leaves}"><span class="icon">📑</span> All Leaves</a>
+                    <a class="nav-link text-muted d-flex align-items-center gap-2 px-3 py-2 rounded mb-1 hover-surface2"
+                        th:href="@{/admin/announcements}"><span class="icon">📢</span> Announcements</a>
+                    <a class="nav-link text-muted d-flex align-items-center gap-2 px-3 py-2 rounded mb-1 hover-surface2"
+                        th:href="@{/admin/audit-logs}"><span class="icon">🔍</span> Audit Logs</a>
                 </div>
             </nav>
-            <div class="sidebar-footer">
-                <div class="user-info">
-                    <div class="user-avatar" th:text="${#strings.substring(dashboard.employeeName,0,1)}">A</div>
+            <div class="sidebar-footer p-3 border-top border-secondary">
+                <div class="d-flex align-items-center gap-2 mb-3">
+                    <div class="rounded-circle d-flex align-items-center justify-content-center fw-bold text-white flex-shrink-0"
+                        style="width: 40px; height: 40px; background: linear-gradient(135deg, var(--primary), var(--accent));"
+                        th:text="${#strings.substring(dashboard.employeeName,0,1)}">A</div>
                     <div>
-                        <div class="user-name" th:text="${dashboard.employeeName}">Name</div>
-                        <div class="user-role" th:text="${dashboard.role}">ROLE</div>
+                        <div class="fw-semibold small" th:text="${dashboard.employeeName}">Name</div>
+                        <div class="text-uppercase text-muted" style="font-size: 0.7rem; letter-spacing: 0.05em;"
+                            th:text="${dashboard.role}">ROLE</div>
                     </div>
                 </div>
-                <button class="btn-logout" onclick="logout()">Sign Out</button>
+                <button class="btn btn-outline-secondary text-muted w-100 border-0 bg-surface2 hover-danger"
+                    onclick="logout()">Sign Out</button>
             </div>
         </aside>
 
         <!-- MAIN CONTENT -->
-        <main class="main-content">
-            <div class="topbar">
-                <div class="d-flex align-center gap-12">
-                    <button class="sidebar-toggle" onclick="toggleSidebar()">☰</button>
-                    <h2>Dashboard</h2>
+        <main class="main-content flex-grow-1 d-flex flex-column min-vh-100" style="margin-left: 260px;">
+            <div
+                class="topbar bg-surface border-bottom border-secondary p-3 d-flex align-items-center justify-content-between sticky-top z-3">
+                <div class="d-flex align-items-center gap-3">
+                    <button class="btn btn-outline-secondary d-md-none p-1 border-0 text-light"
+                        onclick="toggleSidebar()">☰</button>
+                    <h2 class="h5 mb-0 fw-semibold text-light">
+                        Welcome, <span class="text-primary"
+                            th:text="${#strings.capitalize(#strings.toLowerCase(dashboard.role))}">User</span>! 👋
+                    </h2>
                 </div>
             </div>
 
-            <div class="page-content">
+            <div class="page-content container-fluid p-4">
 
                 <!-- LEAVE BALANCE STATS -->
-                <div class="stats-grid">
-                    <div class="stat-card">
-                        <div class="stat-icon">🌴</div>
-                        <div class="stat-value" th:text="${dashboard.casualLeaveBalance ?: 0}">0</div>
-                        <div class="stat-label">Casual Leave</div>
-                        <div class="stat-sub">days remaining</div>
+                <div class="row g-4 mb-4">
+                    <div class="col-sm-6 col-lg-3">
+                        <div class="card bg-surface border-secondary h-100 shadow-sm custom-stat-card rounded-4">
+                            <div class="card-body position-relative overflow-hidden p-4">
+                                <div class="fs-1 mb-2">🌴</div>
+                                <div class="display-6 fw-bold mb-1" th:text="${dashboard.casualLeaveBalance ?: 0}">0
+                                </div>
+                                <div class="text-uppercase small text-muted fw-semibold"
+                                    style="letter-spacing: 0.05em;">Casual Leave</div>
+                                <div class="small text-success mt-1">days remaining</div>
+                            </div>
+                        </div>
                     </div>
-                    <div class="stat-card">
-                        <div class="stat-icon">🏥</div>
-                        <div class="stat-value" th:text="${dashboard.sickLeaveBalance ?: 0}">0</div>
-                        <div class="stat-label">Sick Leave</div>
-                        <div class="stat-sub">days remaining</div>
+                    <div class="col-sm-6 col-lg-3">
+                        <div class="card bg-surface border-secondary h-100 shadow-sm custom-stat-card rounded-4">
+                            <div class="card-body position-relative overflow-hidden p-4">
+                                <div class="fs-1 mb-2">🏥</div>
+                                <div class="display-6 fw-bold mb-1" th:text="${dashboard.sickLeaveBalance ?: 0}">0</div>
+                                <div class="text-uppercase small text-muted fw-semibold"
+                                    style="letter-spacing: 0.05em;">Sick Leave</div>
+                                <div class="small text-success mt-1">days remaining</div>
+                            </div>
+                        </div>
                     </div>
-                    <div class="stat-card">
-                        <div class="stat-icon">💼</div>
-                        <div class="stat-value" th:text="${dashboard.paidLeaveBalance ?: 0}">0</div>
-                        <div class="stat-label">Paid Leave</div>
-                        <div class="stat-sub">days remaining</div>
+                    <div class="col-sm-6 col-lg-3">
+                        <div class="card bg-surface border-secondary h-100 shadow-sm custom-stat-card rounded-4">
+                            <div class="card-body position-relative overflow-hidden p-4">
+                                <div class="fs-1 mb-2">💼</div>
+                                <div class="display-6 fw-bold mb-1" th:text="${dashboard.paidLeaveBalance ?: 0}">0</div>
+                                <div class="text-uppercase small text-muted fw-semibold"
+                                    style="letter-spacing: 0.05em;">Paid Leave</div>
+                                <div class="small text-success mt-1">days remaining</div>
+                            </div>
+                        </div>
                     </div>
-                    <div class="stat-card">
-                        <div class="stat-icon">⏳</div>
-                        <div class="stat-value" th:text="${dashboard.pendingLeaveCount ?: 0}">0</div>
-                        <div class="stat-label">Pending Leaves</div>
+                    <div class="col-sm-6 col-lg-3">
+                        <div class="card bg-surface border-secondary h-100 shadow-sm custom-stat-card rounded-4">
+                            <div class="card-body position-relative overflow-hidden p-4">
+                                <div class="fs-1 mb-2">⏳</div>
+                                <div class="display-6 fw-bold mb-1" th:text="${dashboard.pendingLeaveCount ?: 0}">0
+                                </div>
+                                <div class="text-uppercase small text-muted fw-semibold"
+                                    style="letter-spacing: 0.05em;">Pending Leaves</div>
+                            </div>
+                        </div>
                     </div>
-                    <div class="stat-card" th:if="${dashboard.role == 'MANAGER' or dashboard.role == 'ADMIN'}">
-                        <div class="stat-icon">👥</div>
-                        <div class="stat-value" th:text="${dashboard.teamSize ?: 0}">0</div>
-                        <div class="stat-label">Team Members</div>
+                    <div class="col-sm-6 col-lg-3" th:if="${dashboard.role == 'MANAGER' or dashboard.role == 'ADMIN'}">
+                        <div class="card bg-surface border-secondary h-100 shadow-sm custom-stat-card rounded-4">
+                            <div class="card-body position-relative overflow-hidden p-4">
+                                <div class="fs-1 mb-2">👥</div>
+                                <div class="display-6 fw-bold mb-1" th:text="${dashboard.teamSize ?: 0}">0</div>
+                                <div class="text-uppercase small text-muted fw-semibold"
+                                    style="letter-spacing: 0.05em;">Team Members</div>
+                            </div>
+                        </div>
                     </div>
-                    <div class="stat-card" th:if="${dashboard.role == 'MANAGER' or dashboard.role == 'ADMIN'}">
-                        <div class="stat-icon">📬</div>
-                        <div class="stat-value" th:text="${dashboard.pendingApprovalCount ?: 0}">0</div>
-                        <div class="stat-label">Pending Approvals</div>
+                    <div class="col-sm-6 col-lg-3" th:if="${dashboard.role == 'MANAGER' or dashboard.role == 'ADMIN'}">
+                        <div class="card bg-surface border-secondary h-100 shadow-sm custom-stat-card rounded-4">
+                            <div class="card-body position-relative overflow-hidden p-4">
+                                <div class="fs-1 mb-2">📬</div>
+                                <div class="display-6 fw-bold mb-1" th:text="${dashboard.pendingApprovalCount ?: 0}">0
+                                </div>
+                                <div class="text-uppercase small text-muted fw-semibold"
+                                    style="letter-spacing: 0.05em;">Pending Approvals</div>
+                            </div>
+                        </div>
                     </div>
-                    <div class="stat-card" th:if="${dashboard.role == 'ADMIN'}">
-                        <div class="stat-icon">🏢</div>
-                        <div class="stat-value" th:text="${dashboard.totalEmployees ?: 0}">0</div>
-                        <div class="stat-label">Total Employees</div>
+                    <div class="col-sm-6 col-lg-3" th:if="${dashboard.role == 'ADMIN'}">
+                        <div class="card bg-surface border-secondary h-100 shadow-sm custom-stat-card rounded-4">
+                            <div class="card-body position-relative overflow-hidden p-4">
+                                <div class="fs-1 mb-2">🏢</div>
+                                <div class="display-6 fw-bold mb-1" th:text="${dashboard.totalEmployees ?: 0}">0</div>
+                                <div class="text-uppercase small text-muted fw-semibold"
+                                    style="letter-spacing: 0.05em;">Total Employees</div>
+                            </div>
+                        </div>
                     </div>
-                    <div class="stat-card" th:if="${dashboard.role == 'ADMIN'}">
-                        <div class="stat-icon">🏬</div>
-                        <div class="stat-value" th:text="${dashboard.totalDepartments ?: 0}">0</div>
-                        <div class="stat-label">Departments</div>
+                    <div class="col-sm-6 col-lg-3" th:if="${dashboard.role == 'ADMIN'}">
+                        <div class="card bg-surface border-secondary h-100 shadow-sm custom-stat-card rounded-4">
+                            <div class="card-body position-relative overflow-hidden p-4">
+                                <div class="fs-1 mb-2">🏬</div>
+                                <div class="display-6 fw-bold mb-1" th:text="${dashboard.totalDepartments ?: 0}">0</div>
+                                <div class="text-uppercase small text-muted fw-semibold"
+                                    style="letter-spacing: 0.05em;">Departments</div>
+                            </div>
+                        </div>
                     </div>
                 </div>
 
-                <!-- ANNOUNCEMENTS -->
-                <div class="card" th:if="${not #lists.isEmpty(announcements)}">
-                    <div class="card-header">
-                        <div class="card-title">📢 Company Announcements</div>
+                <div class="row g-4">
+                    <!-- ANNOUNCEMENTS -->
+                    <div class="col-12 col-xl-8" th:if="${not #lists.isEmpty(announcements)}">
+                        <div class="card bg-surface border-secondary rounded-4 shadow-sm h-100">
+                            <div class="card-header bg-transparent border-secondary border-bottom p-4">
+                                <h3 class="h5 mb-0 fw-semibold">📢 Company Announcements</h3>
+                            </div>
+                            <div class="card-body p-0">
+                                <div th:each="ann : ${announcements}"
+                                    class="p-4 border-bottom border-secondary custom-list-item">
+                                    <h4 class="h6 fw-semibold mb-2" th:text="${ann.title}">Title</h4>
+                                    <p class="text-muted small mb-3" th:text="${ann.content}">Content</p>
+                                    <p class="small text-muted mb-0 opacity-75"
+                                        th:text="'Posted · ' + ${ann.createdAt}">Date</p>
+                                </div>
+                            </div>
+                        </div>
                     </div>
-                    <div th:each="ann : ${announcements}" style="padding:12px 0;border-bottom:1px solid var(--border);">
-                        <div class="fw-600 mb-4" th:text="${ann.title}">Title</div>
-                        <div class="text-muted fs-sm" th:text="${ann.content}">Content</div>
-                        <div class="fs-xs text-muted mt-8" th:text="'Posted · ' + ${ann.createdAt}">Date</div>
-                    </div>
-                </div>
 
-                <!-- QUICK ACTIONS -->
-                <div class="card mt-16">
-                    <div class="card-title mb-16">⚡ Quick Actions</div>
-                    <div style="display:flex;flex-wrap:wrap;gap:12px;">
-                        <a th:href="@{/leaves/apply}" class="btn btn-primary"><span>➕</span> Apply Leave</a>
-                        <a th:href="@{/performance/reviews}" class="btn btn-ghost"><span>⭐</span> My Reviews</a>
-                        <a th:href="@{/performance/goals}" class="btn btn-ghost"><span>🎯</span> My Goals</a>
-                        <a th:href="@{/directory}" class="btn btn-ghost"><span>📋</span> Directory</a>
-                        <a sec:authorize="hasAnyRole('MANAGER','ADMIN')" th:href="@{/leaves/team}"
-                            class="btn btn-ghost"><span>👥</span> Team Leaves</a>
-                        <a sec:authorize="hasAnyRole('MANAGER','ADMIN')" th:href="@{/performance/team-goals}"
-                            class="btn btn-ghost"><span>🎯</span> Team Goals</a>
-                        <a sec:authorize="hasRole('ADMIN')" th:href="@{/admin/employees}"
-                            class="btn btn-ghost"><span>🏢</span> Manage Employees</a>
+                    <!-- QUICK ACTIONS -->
+                    <div class="col-12 col-xl-4">
+                        <div class="card bg-surface border-secondary rounded-4 shadow-sm h-100">
+                            <div class="card-header bg-transparent border-secondary border-bottom p-4">
+                                <h3 class="h5 mb-0 fw-semibold">⚡ Quick Actions</h3>
+                            </div>
+                            <div class="card-body p-4">
+                                <div class="d-flex flex-column gap-2">
+                                    <a th:href="@{/leaves/apply}"
+                                        class="btn btn-primary text-start px-3 py-2 fw-medium rounded-3"><span>➕</span>
+                                        Apply Leave</a>
+                                    <a th:href="@{/performance/reviews}"
+                                        class="btn btn-outline-secondary border-secondary text-light hover-surface2 text-start px-3 py-2 rounded-3"><span>⭐</span>
+                                        My Reviews</a>
+                                    <a th:href="@{/performance/goals}"
+                                        class="btn btn-outline-secondary border-secondary text-light hover-surface2 text-start px-3 py-2 rounded-3"><span>🎯</span>
+                                        My Goals</a>
+                                    <a th:href="@{/directory}"
+                                        class="btn btn-outline-secondary border-secondary text-light hover-surface2 text-start px-3 py-2 rounded-3"><span>📋</span>
+                                        Directory</a>
+                                    <a sec:authorize="hasAnyRole('MANAGER','ADMIN')" th:href="@{/leaves/team}"
+                                        class="btn btn-outline-secondary border-secondary text-light hover-surface2 text-start px-3 py-2 rounded-3"><span>👥</span>
+                                        Team Leaves</a>
+                                    <a sec:authorize="hasAnyRole('MANAGER','ADMIN')"
+                                        th:href="@{/performance/team-goals}"
+                                        class="btn btn-outline-secondary border-secondary text-light hover-surface2 text-start px-3 py-2 rounded-3"><span>🎯</span>
+                                        Team Goals</a>
+                                    <a sec:authorize="hasRole('ADMIN')" th:href="@{/admin/employees}"
+                                        class="btn btn-outline-secondary border-secondary text-light hover-surface2 text-start px-3 py-2 rounded-3"><span>🏢</span>
+                                        Manage Employees</a>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
 
@@ -157,15 +259,74 @@
         </main>
     </div>
 
+    <!-- Bootstrap Bundle with Popper -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
     <script>
         function logout() {
             document.cookie = 'JWT_TOKEN=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
             window.location.href = '/login';
         }
         function toggleSidebar() {
-            document.getElementById('sidebar').classList.toggle('open');
+            const sidebar = document.getElementById('sidebar');
+            if (sidebar.style.transform === 'translateX(0px)' || sidebar.style.transform === '') {
+                sidebar.style.transform = 'translateX(-100%)';
+            } else {
+                sidebar.style.transform = 'translateX(0px)';
+            }
         }
     </script>
+
+    <style>
+        .hover-surface2:hover {
+            background-color: var(--surface2) !important;
+            color: white !important;
+        }
+
+        .hover-danger:hover {
+            background-color: var(--danger) !important;
+            color: white !important;
+        }
+
+        .custom-stat-card {
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .custom-stat-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: linear-gradient(90deg, var(--primary), var(--accent));
+        }
+
+        .custom-stat-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5) !important;
+        }
+
+        .custom-list-item:hover {
+            background-color: rgba(255, 255, 255, 0.02);
+        }
+
+        .bg-gradient-text {
+            background: linear-gradient(135deg, var(--primary-light), var(--accent));
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        @media (max-width: 768px) {
+            .sidebar {
+                transform: translateX(-100%);
+            }
+
+            .main-content {
+                margin-left: 0 !important;
+            }
+        }
+    </style>
 </body>
 
 </html>

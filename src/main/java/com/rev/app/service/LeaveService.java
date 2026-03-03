@@ -113,9 +113,24 @@ public class LeaveService implements ILeaveService {
             throw new BadRequestException("Leave application is already " + la.getStatus());
         }
 
+        // Authorization check: Must be the applicant's manager OR an ADMIN
+        boolean isAdmin = "ADMIN".equals(manager.getRole());
+        boolean isDirectManager = la.getManager() != null
+                && la.getManager().getEmployeeId().equals(manager.getEmployeeId());
+
+        if (!isAdmin && !isDirectManager) {
+            throw new BadRequestException("You are not authorized to process this leave application");
+        }
+
         boolean approve = "APPROVE".equalsIgnoreCase(req.getAction());
+        boolean isSelfApproval = la.getEmployee().getEmployeeId().equals(manager.getEmployeeId());
+
         if (!approve && (req.getComments() == null || req.getComments().isBlank())) {
             throw new BadRequestException("Comments are required when rejecting a leave request");
+        }
+
+        if (approve && isSelfApproval && (req.getComments() == null || req.getComments().isBlank())) {
+            throw new BadRequestException("A proper reason (comments) is required for self-approval");
         }
 
         la.setStatus(approve ? LeaveApplication.LeaveStatus.APPROVED : LeaveApplication.LeaveStatus.REJECTED);
@@ -172,8 +187,17 @@ public class LeaveService implements ILeaveService {
 
     @Override
     public List<LeaveApplicationDTO> getTeamLeaves(Long managerId) {
-        return leaveApplicationRepository.findTeamLeaveApplications(managerId)
-                .stream().map(leaveApplicationMapper::toDto).collect(Collectors.toList());
+        Employee manager = employeeRepository.findById(managerId)
+                .orElseThrow(() -> new ResourceNotFoundException("Manager", "id", managerId));
+
+        if ("ADMIN".equals(manager.getRole())) {
+            // Admin sees all leaves in the system to allow override/company-wide approval
+            return leaveApplicationRepository.findAll()
+                    .stream().map(leaveApplicationMapper::toDto).collect(Collectors.toList());
+        } else {
+            return leaveApplicationRepository.findTeamLeaveApplications(managerId)
+                    .stream().map(leaveApplicationMapper::toDto).collect(Collectors.toList());
+        }
     }
 
     @Override

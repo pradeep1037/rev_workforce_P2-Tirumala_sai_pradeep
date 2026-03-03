@@ -155,8 +155,26 @@
                     headers: { 'Content-Type': 'application/json', ...getAuthHeaders() },
                     body: JSON.stringify({ action: 'APPROVE', comments: '' })
                 });
-                if (res.ok) { alert('Leave approved!'); location.reload(); }
-                else { const d = await res.json(); alert(d.message || 'Error'); }
+                if (res.ok) {
+                    alert('Leave approved!');
+                    location.reload();
+                } else {
+                    const d = await res.json();
+                    if (d.message && d.message.includes('proper reason')) {
+                        const reason = prompt(d.message + "\n\nPlease enter a reason:");
+                        if (reason && reason.trim()) {
+                            const res2 = await fetch(`/api/leaves/${id}/action`, {
+                                method: 'PUT',
+                                headers: { 'Content-Type': 'application/json', ...getAuthHeaders() },
+                                body: JSON.stringify({ action: 'APPROVE', comments: reason.trim() })
+                            });
+                            if (res2.ok) { alert('Leave approved!'); location.reload(); }
+                            else { const d2 = await res2.json(); alert(d2.message || 'Error'); }
+                        }
+                    } else {
+                        alert(d.message || 'Error');
+                    }
+                }
             } else {
                 pendingLeaveId = id; pendingAction = action;
                 document.getElementById('rejectModal').classList.add('open');
