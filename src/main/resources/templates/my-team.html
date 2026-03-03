@@ -6,74 +6,122 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <title>My Team – RevWorkforce</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" th:href="@{/css/app.css}">
 </head>
 
-<body>
-    <div class="layout">
-        <aside class="sidebar" id="sidebar">
-            <div class="sidebar-brand">
-                <h1>RevWorkforce</h1>
-                <p>HR Management</p>
+<body class="bg-dark text-light">
+    <div class="layout d-flex min-vh-100">
+        <!-- SIDEBAR -->
+        <aside class="sidebar bg-surface border-end border-secondary d-flex flex-column position-fixed h-100"
+            id="sidebar" style="width: 260px; z-index: 1000; transition: transform 0.3s ease;">
+            <div class="sidebar-brand p-4 border-bottom border-secondary">
+                <h1 class="h4 fw-bolder bg-gradient-text mb-0">RevWorkforce</h1>
+                <p class="small text-muted mt-1 mb-0">HR Management System</p>
             </div>
-            <nav class="sidebar-nav">
-                <a class="nav-link" th:href="@{/dashboard}"><span class="icon">🏠</span>Dashboard</a>
-                <a class="nav-link" th:href="@{/profile}"><span class="icon">👤</span>My Profile</a>
-                <a class="nav-link" th:href="@{/directory}"><span class="icon">📋</span>Directory</a>
-
-                <div class="nav-label" style="margin-top:8px">Team Management</div>
-                <a class="nav-link active" th:href="@{/my-team}"><span class="icon">👥</span>My Team</a>
-                <a class="nav-link" th:href="@{/leaves/team}"><span class="icon">📅</span>Team Leaves</a>
-                <a class="nav-link" th:href="@{/performance/team-goals}"><span class="icon">🎯</span>Team Goals</a>
-                <a class="nav-link" th:href="@{/performance/team-reviews}"><span class="icon">📊</span>Team Reviews</a>
-
-                <div class="nav-label" style="margin-top:8px">My Stuff</div>
-                <a class="nav-link" th:href="@{/leaves}"><span class="icon">📅</span>My Leaves</a>
-                <a class="nav-link" th:href="@{/performance/reviews}"><span class="icon">⭐</span>My Reviews</a>
-                <a class="nav-link" th:href="@{/performance/goals}"><span class="icon">🎯</span>My Goals</a>
+            <nav class="sidebar-nav flex-grow-1 p-3 overflow-auto">
+                <div class="nav-section mb-3">
+                    <div class="text-uppercase small fw-bold text-muted mb-2 px-2" style="letter-spacing: 0.1em;">Main
+                    </div>
+                    <a class="nav-link text-muted d-flex align-items-center gap-2 px-3 py-2 rounded mb-1 hover-surface2"
+                        th:href="@{/dashboard}"><span class="icon">🏠</span> Dashboard</a>
+                    <a class="nav-link text-muted d-flex align-items-center gap-2 px-3 py-2 rounded mb-1 hover-surface2"
+                        th:href="@{/profile}"><span class="icon">👤</span> My Profile</a>
+                    <a class="nav-link text-muted d-flex align-items-center gap-2 px-3 py-2 rounded mb-1 hover-surface2"
+                        th:href="@{/directory}"><span class="icon">📋</span> Directory</a>
+                    <a class="nav-link text-muted d-flex align-items-center gap-2 px-3 py-2 rounded mb-1 hover-surface2"
+                        th:href="@{/notifications}">
+                        <span class="icon">🔔</span> Notifications
+                        <span class="badge bg-danger ms-auto rounded-pill px-2" th:if="${unreadCount > 0}"
+                            th:text="${unreadCount}"></span>
+                    </a>
+                </div>
+                <div class="nav-section mb-3">
+                    <div class="text-uppercase small fw-bold text-muted mb-2 px-2" style="letter-spacing: 0.1em;">Team
+                        Management</div>
+                    <a class="nav-link text-muted d-flex align-items-center gap-2 px-3 py-2 rounded mb-1 bg-primary text-white fw-medium"
+                        th:href="@{/my-team}"><span class="icon">👥</span> My Team</a>
+                    <a class="nav-link text-muted d-flex align-items-center gap-2 px-3 py-2 rounded mb-1 hover-surface2"
+                        th:href="@{/leaves/team}"><span class="icon">📅</span> Team Leaves</a>
+                    <a class="nav-link text-muted d-flex align-items-center gap-2 px-3 py-2 rounded mb-1 hover-surface2"
+                        th:href="@{/performance/team-goals}"><span class="icon">🎯</span> Team Goals</a>
+                    <a class="nav-link text-muted d-flex align-items-center gap-2 px-3 py-2 rounded mb-1 hover-surface2"
+                        th:href="@{/performance/team-reviews}"><span class="icon">📊</span> Team Reviews</a>
+                </div>
+                <div class="nav-section mb-3">
+                    <div class="text-uppercase small fw-bold text-muted mb-2 px-2" style="letter-spacing: 0.1em;">My
+                        Stuff</div>
+                    <a class="nav-link text-muted d-flex align-items-center gap-2 px-3 py-2 rounded mb-1 hover-surface2"
+                        th:href="@{/leaves}"><span class="icon">📅</span> My Leaves</a>
+                    <a class="nav-link text-muted d-flex align-items-center gap-2 px-3 py-2 rounded mb-1 hover-surface2"
+                        th:href="@{/performance/reviews}"><span class="icon">⭐</span> My Reviews</a>
+                    <a class="nav-link text-muted d-flex align-items-center gap-2 px-3 py-2 rounded mb-1 hover-surface2"
+                        th:href="@{/performance/goals}"><span class="icon">🎯</span> My Goals</a>
+                </div>
             </nav>
-            <div class="sidebar-footer"><button class="btn-logout" onclick="logout()">Sign Out</button></div>
+            <div class="sidebar-footer p-3 border-top border-secondary">
+                <button class="btn btn-outline-secondary text-muted w-100 border-0 bg-surface2 hover-danger"
+                    onclick="logout()">Sign Out</button>
+            </div>
         </aside>
-        <main class="main-content">
-            <div class="topbar">
-                <div class="d-flex align-center gap-12">
-                    <button class="sidebar-toggle" onclick="toggleSidebar()">☰</button>
-                    <h2>My Team Structure</h2>
+
+        <!-- MAIN CONTENT -->
+        <main class="main-content flex-grow-1 d-flex flex-column min-vh-100" style="margin-left: 260px;">
+            <div
+                class="topbar bg-surface border-bottom border-secondary p-3 d-flex align-items-center justify-content-between sticky-top z-3">
+                <div class="d-flex align-items-center gap-3">
+                    <button class="btn btn-outline-secondary d-md-none p-1 border-0 text-light"
+                        onclick="toggleSidebar()">☰</button>
+                    <h2 class="h5 mb-0 fw-semibold text-light">My Team Structure</h2>
                 </div>
             </div>
-            <div class="page-content">
-                <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:16px">
-                    <div th:if="${#lists.isEmpty(team)}"
-                        style="grid-column:1/-1;text-align:center;color:var(--text-muted);padding:48px 0">
-                        No team members report directly to you.
-                    </div>
-                    <div th:each="emp : ${team}" class="card"
-                        style="padding:20px;display:flex;flex-direction:column;gap:12px">
-                        <div style="display:flex;align-items:center;gap:12px">
-                            <div style="width:48px;height:48px;border-radius:50%;background:var(--primary);color:white;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:1.2rem;flex-shrink:0"
-                                th:text="${#strings.substring(emp.name,0,1)}">A</div>
-                            <div>
-                                <div class="fw-600" style="font-size:1.05rem;" th:text="${emp.name}">Name</div>
-                                <div class="fs-xs text-muted" th:text="${emp.email}">email</div>
-                            </div>
+
+            <div class="page-content container-fluid p-4">
+                <div class="row g-4">
+                    <div class="col-12" th:if="${#lists.isEmpty(team)}">
+                        <div class="text-center text-muted p-5 rounded-4 bg-surface border border-secondary shadow-sm">
+                            <span class="fs-1 d-block mb-3">👥</span>
+                            <p class="mb-0">No team members report directly to you.</p>
                         </div>
-                        <div
-                            style="border-top:1px solid var(--border);padding-top:12px;display:flex;flex-direction:column;gap:8px">
-                            <div class="d-flex justify-between">
-                                <span class="fs-xs text-muted">Role</span>
-                                <span class="badge badge-employee" th:text="${emp.role}">-</span>
-                            </div>
-                            <div class="d-flex justify-between">
-                                <span class="fs-xs text-muted">Department</span>
-                                <span class="fs-sm" th:text="${emp.departmentName ?: '-'}">-</span>
-                            </div>
-                            <div class="d-flex justify-between">
-                                <span class="fs-xs text-muted">Designation</span>
-                                <span class="fs-sm" th:text="${emp.designationName ?: '-'}">-</span>
-                            </div>
-                            <div class="d-flex justify-between">
-                                <span class="fs-xs text-muted">Phone</span>
-                                <span class="fs-sm" th:text="${emp.phone ?: '-'}">-</span>
+                    </div>
+
+                    <div class="col-md-6 col-xl-4 col-xxl-3" th:each="emp : ${team}">
+                        <div class="card bg-surface border-secondary rounded-4 shadow-sm h-100 custom-card-hover">
+                            <div class="card-body p-4 d-flex flex-column gap-3">
+                                <div class="d-flex align-items-center gap-3">
+                                    <div class="rounded-circle d-flex align-items-center justify-content-center fw-bold text-white flex-shrink-0"
+                                        style="width: 56px; height: 56px; font-size: 1.3rem; background: linear-gradient(135deg, var(--primary), var(--accent)); box-shadow: 0 4px 12px rgba(99, 102, 241, 0.4);"
+                                        th:text="${#strings.substring(emp.name,0,1)}">A</div>
+                                    <div class="overflow-hidden">
+                                        <div class="fw-semibold text-light fs-5 text-truncate" th:text="${emp.name}">
+                                            Name</div>
+                                        <div class="small text-muted text-truncate" th:text="${emp.email}">email</div>
+                                    </div>
+                                </div>
+                                <hr class="border-secondary my-0 opacity-25">
+                                <div class="d-flex flex-column gap-2 mt-1">
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <span class="small text-muted">Role</span>
+                                        <span
+                                            class="badge bg-primary bg-opacity-25 text-primary-light px-2 py-1 rounded-pill"
+                                            th:text="${emp.role}">-</span>
+                                    </div>
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <span class="small text-muted">Department</span>
+                                        <span class="small text-light text-end text-truncate ms-3"
+                                            th:text="${emp.departmentName ?: '-'}">-</span>
+                                    </div>
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <span class="small text-muted">Designation</span>
+                                        <span class="small text-light text-end text-truncate ms-3"
+                                            th:text="${emp.designationName ?: '-'}">-</span>
+                                    </div>
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <span class="small text-muted">Phone</span>
+                                        <span class="small text-light" th:text="${emp.phone ?: '-'}">-</span>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -81,10 +129,63 @@
             </div>
         </main>
     </div>
+
+    <!-- Bootstrap Bundle with Popper -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
     <script>
         function logout() { document.cookie = 'JWT_TOKEN=;expires=Thu,01 Jan 1970'; window.location.href = '/login'; }
-        function toggleSidebar() { document.getElementById('sidebar').classList.toggle('open'); }
+        function toggleSidebar() {
+            const sidebar = document.getElementById('sidebar');
+            if (sidebar.style.transform === 'translateX(0px)' || sidebar.style.transform === '') {
+                sidebar.style.transform = 'translateX(-100%)';
+            } else {
+                sidebar.style.transform = 'translateX(0px)';
+            }
+        }
     </script>
+
+    <style>
+        .hover-surface2:hover {
+            background-color: var(--surface2) !important;
+            color: white !important;
+        }
+
+        .hover-danger:hover {
+            background-color: var(--danger) !important;
+            color: white !important;
+        }
+
+        .bg-gradient-text {
+            background: linear-gradient(135deg, var(--primary-light), var(--accent));
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .text-primary-light {
+            color: #818cf8 !important;
+        }
+
+        .custom-card-hover {
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .custom-card-hover:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 12px 24px rgba(0, 0, 0, 0.5) !important;
+            border-color: var(--primary) !important;
+        }
+
+        @media (max-width: 768px) {
+            .sidebar {
+                transform: translateX(-100%);
+            }
+
+            .main-content {
+                margin-left: 0 !important;
+            }
+        }
+    </style>
 </body>
 
 </html>
