@@ -114,7 +114,7 @@ public class LeaveService implements ILeaveService {
         }
 
         // Authorization check: Must be the applicant's manager OR an ADMIN
-        boolean isAdmin = "ADMIN".equals(manager.getRole());
+        boolean isAdmin = Employee.Role.ADMIN == manager.getRole();
         boolean isDirectManager = la.getManager() != null
                 && la.getManager().getEmployeeId().equals(manager.getEmployeeId());
 

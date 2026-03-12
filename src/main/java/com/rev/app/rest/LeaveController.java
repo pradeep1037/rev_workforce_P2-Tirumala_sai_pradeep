@@ -56,7 +56,7 @@ public class LeaveController {
         return ResponseEntity.ok(leaveService.getHolidays());
     }
 
-    // ===================== MANAGER ENDPOINTS =====================
+
 
     @GetMapping("/team")
     @PreAuthorize("hasAnyRole('MANAGER','ADMIN')")
@@ -80,7 +80,7 @@ public class LeaveController {
         return ResponseEntity.ok(leaveService.processLeave(id, req, current));
     }
 
-    // ===================== ADMIN ENDPOINTS =====================
+    // ===================== ADMIN ENDPOINTS ==================
 
     @GetMapping("/all")
     @PreAuthorize("hasRole('ADMIN')")

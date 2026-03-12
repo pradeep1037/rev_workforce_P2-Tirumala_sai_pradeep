@@ -13,4 +13,6 @@ public interface IAuthService {
     EmployeeDTO register(RegisterRequest request);
 
     Employee getCurrentEmployee();
+    String getSecurityQuestion(String email);
+    void resetPassword(String email, String answer, String newPassword);
 }

@@ -1,0 +1,16 @@
+com\rev\app\service\PerformanceServiceTest.class
+com\rev\app\security\JwtTokenProviderTest.class
+com\rev\app\integration\NavigationFlowIntegrationTest.class
+com\rev\app\repository\GoalRepositoryTest.class
+com\rev\app\service\EmployeeServiceTest.class
+com\rev\app\service\LeaveServiceTest.class
+com\rev\app\integration\RoleAccessIntegrationTest.class
+com\rev\app\rest\LeaveControllerTest.class
+com\rev\app\repository\LeaveBalanceRepositoryTest.class
+com\rev\app\rest\PerformanceControllerTest.class
+com\rev\app\repository\PerformanceReviewRepositoryTest.class
+com\rev\app\security\CustomUserDetailsServiceTest.class
+com\rev\app\security\SecurityIntegrationTest.class
+com\rev\app\service\AuthServiceTest.class
+com\rev\app\integration\EmployeeIntegrationTest.class
+com\rev\app\integration\LeaveWorkflowIntegrationTest.class

@@ -1,7 +1,6 @@
 package com.rev.app.security;
 
 import io.jsonwebtoken.*;
-import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -9,6 +8,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
 
+import java.nio.charset.StandardCharsets;
 import java.security.Key;
 import java.util.Date;
 
@@ -23,13 +23,16 @@ public class JwtTokenProvider {
     private long jwtExpirationMs;
 
     private Key getSigningKey() {
-        byte[] keyBytes = Decoders.BASE64.decode(
-                java.util.Base64.getEncoder().encodeToString(jwtSecret.getBytes()));
-        return Keys.hmacShaKeyFor(keyBytes);
+        return Keys.hmacShaKeyFor(jwtSecret.getBytes(StandardCharsets.UTF_8));
     }
 
+    /**
+     * Generate token from Spring Security Authentication
+     */
     public String generateToken(Authentication authentication) {
+
         UserDetails userPrincipal = (UserDetails) authentication.getPrincipal();
+
         Date now = new Date();
         Date expiryDate = new Date(now.getTime() + jwtExpirationMs);
 
@@ -41,7 +44,11 @@ public class JwtTokenProvider {
                 .compact();
     }
 
+    /**
+     * Generate token directly from email
+     */
     public String generateTokenFromEmail(String email) {
+
         Date now = new Date();
         Date expiryDate = new Date(now.getTime() + jwtExpirationMs);
 
@@ -53,28 +60,52 @@ public class JwtTokenProvider {
                 .compact();
     }
 
+    /**
+     * Extract email from token
+     */
     public String getEmailFromToken(String token) {
-        return Jwts.parserBuilder()
+
+        Claims claims = Jwts.parserBuilder()
                 .setSigningKey(getSigningKey())
                 .build()
                 .parseClaimsJws(token)
-                .getBody()
-                .getSubject();
+                .getBody();
+
+        return claims.getSubject();
     }
 
+    /**
+     * Validate token
+     */
     public boolean validateToken(String token) {
+
         try {
-            Jwts.parserBuilder().setSigningKey(getSigningKey()).build().parseClaimsJws(token);
+
+            Jwts.parserBuilder()
+                    .setSigningKey(getSigningKey())
+                    .build()
+                    .parseClaimsJws(token);
+
             return true;
-        } catch (MalformedJwtException e) {
-            log.error("Invalid JWT token: {}", e.getMessage());
-        } catch (ExpiredJwtException e) {
-            log.error("JWT token is expired: {}", e.getMessage());
-        } catch (UnsupportedJwtException e) {
-            log.error("JWT token is unsupported: {}", e.getMessage());
-        } catch (IllegalArgumentException e) {
-            log.error("JWT claims string is empty: {}", e.getMessage());
+
+        } catch (ExpiredJwtException ex) {
+
+            log.error("JWT expired: {}", ex.getMessage());
+
+        } catch (UnsupportedJwtException ex) {
+
+            log.error("Unsupported JWT: {}", ex.getMessage());
+
+        } catch (MalformedJwtException ex) {
+
+            log.error("Invalid JWT: {}", ex.getMessage());
+
+        } catch (IllegalArgumentException ex) {
+
+            log.error("JWT claims empty: {}", ex.getMessage());
+
         }
+
         return false;
     }
 }

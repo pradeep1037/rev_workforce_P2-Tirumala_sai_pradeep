@@ -23,6 +23,8 @@ public class DashboardDTO {
     // Manager-facing
     private Long teamSize;
     private Long pendingApprovalCount;
+    private Long pendingTeamReviewsCount;
+    private Long teamOnLeaveToday;
 
     // Admin-facing
     private Long totalEmployees;

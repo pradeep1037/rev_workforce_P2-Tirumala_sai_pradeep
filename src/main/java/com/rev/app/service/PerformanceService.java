@@ -88,6 +88,11 @@ public class PerformanceService implements IPerformanceService {
         PerformanceReview review = reviewRepository.findById(reviewId)
                 .orElseThrow(() -> new ResourceNotFoundException("PerformanceReview", "id", reviewId));
 
+        if (manager.getRole() != Employee.Role.ADMIN &&
+            (review.getEmployee().getManager() == null || !review.getEmployee().getManager().getEmployeeId().equals(manager.getEmployeeId()))) {
+            throw new BadRequestException("You can only provide feedback to your direct reportees");
+        }
+
         if (review.getStatus() != PerformanceReview.ReviewStatus.SUBMITTED) {
             throw new BadRequestException("Only submitted reviews can receive manager feedback");
         }
@@ -156,7 +161,8 @@ public class PerformanceService implements IPerformanceService {
         Employee targetEmployee = employeeRepository.findById(req.getEmployeeId())
                 .orElseThrow(() -> new ResourceNotFoundException("Employee", "id", req.getEmployeeId()));
 
-        if (targetEmployee.getManager() == null || !targetEmployee.getManager().getEmployeeId().equals(managerId)) {
+        if (manager.getRole() != Employee.Role.ADMIN &&
+            (targetEmployee.getManager() == null || !targetEmployee.getManager().getEmployeeId().equals(managerId))) {
             throw new BadRequestException("You can only assign goals to your direct reportees");
         }
 

@@ -71,7 +71,7 @@ public class PerformanceController {
     }
 
     @PostMapping("/goals/assign")
-    @PreAuthorize("hasAnyRole('MANAGER','ADMIN')")
+    @PreAuthorize("hasRole('MANAGER')")
     public ResponseEntity<GoalDTO> assignGoal(@Valid @RequestBody GoalRequest req) {
         Employee current = authService.getCurrentEmployee();
         return ResponseEntity.status(HttpStatus.CREATED)

@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>Notifications – RevWorkforce</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" th:href="@{/css/app.css}">
+</head>
+
+<body>
+    <div class="layout">
+        <aside class="sidebar" id="sidebar">
+            <div class="sidebar-brand">
+                <h1>RevWorkforce</h1>
+                <p>HR Management</p>
+            </div>
+            <nav class="sidebar-nav">
+                <a class="nav-link" th:href="@{/dashboard}"><span class="icon">🏠</span>Dashboard</a>
+                <a class="nav-link" th:href="@{/profile}"><span class="icon">👤</span>My Profile</a>
+                <a class="nav-link" th:href="@{/directory}"><span class="icon">📋</span>Directory</a>
+                <a class="nav-link active" th:href="@{/notifications}"><span class="icon">🔔</span>Notifications</a>
+                <div class="nav-label" style="margin-top:8px">Leave</div>
+                <a class="nav-link" th:href="@{/leaves}"><span class="icon">📅</span>My Leaves</a>
+            </nav>
+            <div class="sidebar-footer"><button class="btn-logout" onclick="logout()">Sign Out</button></div>
+        </aside>
+        <main class="main-content">
+            <div class="topbar">
+                <div class="d-flex align-center gap-12">
+                    <button class="sidebar-toggle" onclick="toggleSidebar()">☰</button>
+                    <h2>Notifications</h2>
+                </div>
+                <button class="btn btn-ghost btn-sm" th:if="${unreadCount > 0}" onclick="markAllRead()">Mark all
+                    read</button>
+            </div>
+            <div class="page-content">
+                <div class="card">
+                    <div th:if="${#lists.isEmpty(notifications)}"
+                        style="text-align:center;color:var(--text-muted);padding:48px 0">
+                        🔔 No notifications yet.
+                    </div>
+                    <div th:each="n : ${notifications}" class="notification-item"
+                        th:classappend="${!n.isRead} ? 'unread' : ''">
+                        <div class="notification-dot" th:if="${!n.isRead}"></div>
+                        <div>
+                            <div class="notification-msg" th:text="${n.message}">-</div>
+                            <div class="notification-time" th:text="${n.createdAt}">-</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+    <script>
+        async function markAllRead() {
+            await fetch('/api/employees/notifications/mark-read', { method: 'PUT', headers: getAuthHeaders() });
+            location.reload();
+        }
+        function getAuthHeaders() { const t = document.cookie.split(';').map(c => c.trim()).find(c => c.startsWith('JWT_TOKEN='))?.split('=')[1]; return t ? { 'Authorization': 'Bearer ' + t } : {}; }
+        function logout() { document.cookie = 'JWT_TOKEN=;expires=Thu,01 Jan 1970'; window.location.href = '/login'; }
+        function toggleSidebar() { document.getElementById('sidebar').classList.toggle('open'); }
+    </script>
+</body>
+
+</html>

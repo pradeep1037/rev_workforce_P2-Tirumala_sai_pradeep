@@ -3,9 +3,12 @@ package com.rev.app.service;
 import com.rev.app.dto.DashboardDTO;
 import com.rev.app.entity.Employee;
 import com.rev.app.entity.LeaveApplication;
+import com.rev.app.entity.PerformanceReview;
 import com.rev.app.repository.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+
+import java.time.LocalDate;
 
 @Service
 @RequiredArgsConstructor
@@ -15,6 +18,7 @@ public class DashboardService implements IDashboardService {
     private final LeaveApplicationRepository leaveApplicationRepository;
     private final LeaveBalanceRepository leaveBalanceRepository;
     private final DepartmentRepository departmentRepository;
+    private final PerformanceReviewRepository performanceReviewRepository;
     private final INotificationService notificationService;
 
     public DashboardDTO getDashboard(Employee currentUser) {
@@ -42,6 +46,19 @@ public class DashboardService implements IDashboardService {
             dto.setPendingApprovalCount((long) leaveApplicationRepository
                     .findByManagerEmployeeIdAndStatus(currentUser.getEmployeeId(), LeaveApplication.LeaveStatus.PENDING)
                     .size());
+            // Pending performance reviews awaiting manager feedback
+            dto.setPendingTeamReviewsCount((long) performanceReviewRepository
+                    .findByEmployeeManagerEmployeeIdAndStatus(currentUser.getEmployeeId(),
+                            PerformanceReview.ReviewStatus.SUBMITTED)
+                    .size());
+            // Team members on leave today
+            LocalDate today = LocalDate.now();
+            dto.setTeamOnLeaveToday(leaveApplicationRepository
+                    .findByManagerEmployeeIdAndStatus(currentUser.getEmployeeId(),
+                            LeaveApplication.LeaveStatus.APPROVED)
+                    .stream()
+                    .filter(la -> !la.getFromDate().isAfter(today) && !la.getToDate().isBefore(today))
+                    .count());
         }
 
         if (currentUser.getRole() == Employee.Role.ADMIN) {
