@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>Reports – RevWorkforce</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" th:href="@{/css/app.css}">
+    <style>
+        .report-section {
+            display: none;
+        }
+
+        .report-section.active {
+            display: block;
+        }
+
+        .report-tabs {
+            display: flex;
+            gap: 16px;
+            margin-bottom: 24px;
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 12px;
+        }
+
+        .tab-btn {
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-weight: 500;
+            color: var(--text-muted);
+            padding: 8px 16px;
+            transition: all 0.2s;
+        }
+
+        .tab-btn.active {
+            color: var(--primary);
+            border-bottom: 2px solid var(--primary);
+        }
+    </style>
+</head>
+
+<body>
+    <div class="layout">
+        <aside class="sidebar" id="sidebar">
+            <div class="sidebar-brand">
+                <h1>RevWorkforce</h1>
+                <p>Admin Panel</p>
+            </div>
+            <nav class="sidebar-nav">
+                <a class="nav-link" th:href="@{/dashboard}"><span class="icon">🏠</span>Dashboard</a>
+                <div class="nav-label" style="margin-top:8px">Administration</div>
+                <a class="nav-link" th:href="@{/admin/employees}"><span class="icon">🏢</span>Employees</a>
+                <a class="nav-link" th:href="@{/admin/departments}"><span class="icon">⚙️</span>Departments</a>
+                <a class="nav-link" th:href="@{/admin/leaves}"><span class="icon">📑</span>All Leaves</a>
+                <a class="nav-link" th:href="@{/admin/holidays}"><span class="icon">🌴</span>Holidays</a>
+                <a class="nav-link" th:href="@{/admin/announcements}"><span class="icon">📢</span>Announcements</a>
+                <a class="nav-link" th:href="@{/admin/audit-logs}"><span class="icon">🔍</span>Audit Logs</a>
+                <a class="nav-link active" th:href="@{/admin/reports}"><span class="icon">📊</span>Reports</a>
+            </nav>
+            <div class="sidebar-footer"><button class="btn-logout" onclick="logout()">Sign Out</button></div>
+        </aside>
+
+        <main class="main-content">
+            <div class="topbar">
+                <div class="d-flex align-center gap-12">
+                    <button class="sidebar-toggle" onclick="toggleSidebar()">☰</button>
+                    <h2>System Reports</h2>
+                </div>
+            </div>
+
+            <div class="page-content">
+                <div class="card">
+                    <div class="report-tabs">
+                        <button class="tab-btn active" onclick="switchTab('employees')">Employee Report</button>
+                        <button class="tab-btn" onclick="switchTab('leaves')">Leave Utilization</button>
+                    </div>
+
+                    <!-- Employee Report Section -->
+                    <div id="employees-report" class="report-section active">
+                        <form id="empReportForm" class="d-flex gap-12 align-center mb-24"
+                            onsubmit="generateEmpReport(event)">
+                            <div class="form-group mb-0">
+                                <select id="empDeptFilter" class="form-control" style="width: 200px;">
+                                    <option value="">All Departments</option>
+                                    <option th:each="d : ${departments}" th:value="${d.deptId}" th:text="${d.deptName}">
+                                    </option>
+                                </select>
+                            </div>
+                            <div class="form-group mb-0">
+                                <select id="empStatusFilter" class="form-control" style="width: 200px;">
+                                    <option value="">All Status</option>
+                                    <option value="ACTIVE">Active</option>
+                                    <option value="INACTIVE">Inactive</option>
+                                </select>
+                            </div>
+                            <button type="submit" class="btn btn-primary">Generate Report</button>
+                        </form>
+
+                        <div class="table-wrapper">
+                            <table id="empReportTable">
+                                <thead>
+                                    <tr>
+                                        <th>ID</th>
+                                        <th>Name</th>
+                                        <th>Email</th>
+                                        <th>Department</th>
+                                        <th>Designation</th>
+                                        <th>Manager</th>
+                                        <th>Role</th>
+                                        <th>Status</th>
+                                        <th>Join Date</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td colspan="9" style="text-align:center;color:var(--text-muted);padding:32px">
+                                            Run report to view data.</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- Leave Report Section -->
+                    <div id="leaves-report" class="report-section">
+                        <form id="leaveReportForm" class="d-flex gap-12 align-center mb-24"
+                            onsubmit="generateLeaveReport(event)">
+                            <div class="form-group mb-0">
+                                <select id="leaveDeptFilter" class="form-control" style="width: 200px;">
+                                    <option value="">All Departments</option>
+                                    <option th:each="d : ${departments}" th:value="${d.deptId}" th:text="${d.deptName}">
+                                    </option>
+                                </select>
+                            </div>
+                            <button type="submit" class="btn btn-primary">Generate Report</button>
+                        </form>
+
+                        <div class="table-wrapper">
+                            <table id="leaveReportTable">
+                                <thead>
+                                    <tr>
+                                        <th>Employee</th>
+                                        <th>Department</th>
+                                        <th>Total Applications</th>
+                                        <th>Pending Applications</th>
+                                        <th>Casual Leave (Rem)</th>
+                                        <th>Sick Leave (Rem)</th>
+                                        <th>Paid Leave (Rem)</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td colspan="7" style="text-align:center;color:var(--text-muted);padding:32px">
+                                            Run report to view data.</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        function switchTab(tabId) {
+            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+            document.querySelectorAll('.report-section').forEach(sec => sec.classList.remove('active'));
+            event.target.classList.add('active');
+            document.getElementById(tabId + '-report').classList.add('active');
+        }
+
+        async function generateEmpReport(event) {
+            event.preventDefault();
+            const dept = document.getElementById('empDeptFilter').value;
+            const status = document.getElementById('empStatusFilter').value;
+
+            let url = '/api/reports/employees?';
+            if (dept) url += 'departmentId=' + dept + '&';
+            if (status) url += 'status=' + status;
+
+            const res = await fetch(url, { headers: getAuthHeaders() });
+            if (res.ok) {
+                const data = await res.json();
+                const tbody = document.querySelector('#empReportTable tbody');
+                tbody.innerHTML = '';
+                if (data.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="9" style="text-align:center;color:var(--text-muted);padding:32px">No employees matched filters.</td></tr>';
+                    return;
+                }
+                data.forEach(e => {
+                    const tr = document.createElement('tr');
+                    tr.innerHTML = `
+                        <td>${e.employeeId}</td>
+                        <td>${e.name}</td>
+                        <td>${e.email}</td>
+                        <td>${e.departmentName || '-'}</td>
+                        <td>${e.designationName || '-'}</td>
+                        <td>${e.managerName || '-'}</td>
+                        <td>${e.role}</td>
+                        <td>${e.status}</td>
+                        <td>${e.joiningDate ? e.joiningDate.split('T')[0] : '-'}</td>
+                    `;
+                    tbody.appendChild(tr);
+                });
+            } else {
+                alert('Error generating employee report');
+            }
+        }
+
+        async function generateLeaveReport(event) {
+            event.preventDefault();
+            const dept = document.getElementById('leaveDeptFilter').value;
+
+            let url = '/api/reports/leaves?';
+            if (dept) url += 'departmentId=' + dept;
+
+            const res = await fetch(url, { headers: getAuthHeaders() });
+            if (res.ok) {
+                const data = await res.json();
+                const tbody = document.querySelector('#leaveReportTable tbody');
+                tbody.innerHTML = '';
+                if (data.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;color:var(--text-muted);padding:32px">No data returned.</td></tr>';
+                    return;
+                }
+                data.forEach(l => {
+                    const tr = document.createElement('tr');
+                    tr.innerHTML = `
+                        <td>${l.employeeName}</td>
+                        <td>${l.departmentName || '-'}</td>
+                        <td>${l.totalLeaveApplications}</td>
+                        <td>${l.pendingLeaveApplications}</td>
+                        <td>${l.casualLeaveBalance}</td>
+                        <td>${l.sickLeaveBalance}</td>
+                        <td>${l.paidLeaveBalance}</td>
+                    `;
+                    tbody.appendChild(tr);
+                });
+            } else {
+                alert('Error generating leave report');
+            }
+        }
+
+        function getAuthHeaders() { const t = document.cookie.split(';').map(c => c.trim()).find(c => c.startsWith('JWT_TOKEN='))?.split('=')[1]; return t ? { 'Authorization': 'Bearer ' + t } : {}; }
+        function logout() { document.cookie = 'JWT_TOKEN=;expires=Thu,01 Jan 1970'; window.location.href = '/login'; }
+        function toggleSidebar() { document.getElementById('sidebar').classList.toggle('open'); }
+    </script>
+</body>
+
+</html>

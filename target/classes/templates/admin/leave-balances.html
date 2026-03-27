@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>Leave Balances – RevWorkforce</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" th:href="@{/css/app.css}">
+</head>
+
+<body>
+    <div class="layout">
+        <aside class="sidebar" id="sidebar">
+            <div class="sidebar-brand">
+                <h1>RevWorkforce</h1>
+                <p>Admin Panel</p>
+            </div>
+            <nav class="sidebar-nav">
+                <a class="nav-link" th:href="@{/dashboard}"><span class="icon">🏠</span>Dashboard</a>
+                <div class="nav-label" style="margin-top:8px">Administration</div>
+                <a class="nav-link" th:href="@{/admin/employees}"><span class="icon">🏢</span>Employees</a>
+                <a class="nav-link" th:href="@{/admin/departments}"><span class="icon">⚙️</span>Departments</a>
+                <a class="nav-link" th:href="@{/admin/leaves}"><span class="icon">📑</span>All Leaves</a>
+                <a class="nav-link active" th:href="@{/admin/leaves/balances}"><span class="icon">⚖️</span>Leave
+                    Balances</a>
+                <a class="nav-link" th:href="@{/admin/holidays}"><span class="icon">🌴</span>Holidays</a>
+                <a class="nav-link" th:href="@{/admin/announcements}"><span class="icon">📢</span>Announcements</a>
+                <a class="nav-link" th:href="@{/admin/audit-logs}"><span class="icon">🔍</span>Audit Logs</a>
+                <a class="nav-link" th:href="@{/admin/reports}"><span class="icon">📊</span>Reports</a>
+            </nav>
+            <div class="sidebar-footer"><button class="btn-logout" onclick="logout()">Sign Out</button></div>
+        </aside>
+
+        <main class="main-content">
+            <div class="topbar">
+                <div class="d-flex align-center gap-12">
+                    <button class="sidebar-toggle" onclick="toggleSidebar()">☰</button>
+                    <h2>Employee Leave Balances</h2>
+                </div>
+            </div>
+            <div class="page-content">
+                <div class="card mb-24">
+                    <div class="card-header">
+                        <div class="card-title">Leave Balance Overview</div>
+                        <p class="text-muted" style="font-size:0.85rem;margin-top:4px">
+                            View and adjust employee leave quotas. Adjustments are logged to the audit trail.
+                        </p>
+                    </div>
+                    <div class="table-wrapper">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Employee</th>
+                                    <th>Email</th>
+                                    <th>Casual Leave</th>
+                                    <th>Sick Leave</th>
+                                    <th>Paid Leave</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr th:if="${#lists.isEmpty(balances)}">
+                                    <td colspan="6" style="text-align:center;color:var(--text-muted);padding:32px">
+                                        No leave balance records found.
+                                    </td>
+                                </tr>
+                                <tr th:each="b : ${balances}">
+                                    <td>
+                                        <div class="fw-600" th:text="${b.employee.name}">-</div>
+                                        <div class="fs-xs text-muted" th:text="'ID: ' + ${b.employee.employeeId}">-
+                                        </div>
+                                    </td>
+                                    <td class="fs-sm text-muted" th:text="${b.employee.email}">-</td>
+                                    <td>
+                                        <span class="badge"
+                                            th:classappend="${b.casualLeave <= 2 ? 'badge-rejected' : (b.casualLeave <= 5 ? 'badge-pending' : 'badge-approved')}"
+                                            th:text="${b.casualLeave}">0</span>
+                                    </td>
+                                    <td>
+                                        <span class="badge"
+                                            th:classappend="${b.sickLeave <= 2 ? 'badge-rejected' : (b.sickLeave <= 5 ? 'badge-pending' : 'badge-approved')}"
+                                            th:text="${b.sickLeave}">0</span>
+                                    </td>
+                                    <td>
+                                        <span class="badge"
+                                            th:classappend="${b.paidLeave <= 2 ? 'badge-rejected' : (b.paidLeave <= 5 ? 'badge-pending' : 'badge-approved')}"
+                                            th:text="${b.paidLeave}">0</span>
+                                    </td>
+                                    <td>
+                                        <button class="btn btn-primary btn-xs adjust-btn"
+                                            th:attr="data-id=${b.employee.employeeId},data-name=${b.employee.name},data-casual=${b.casualLeave},data-sick=${b.sickLeave},data-paid=${b.paidLeave}">
+                                            ✏ Adjust
+                                        </button>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Adjust Balance Modal -->
+    <div class="modal-overlay" id="adjustModal">
+        <div class="modal" style="max-width: 500px;">
+            <div class="modal-header">
+                <div class="modal-title" id="adjustModalTitle">Adjust Leave Balance</div>
+                <button class="modal-close" onclick="closeAdjustModal()">✕</button>
+            </div>
+            <input type="hidden" id="adjustEmployeeId">
+            <div class="form-group">
+                <label class="form-label">Casual Leave (days remaining)</label>
+                <input type="number" id="adjustCasual" class="form-control" min="0" max="365">
+            </div>
+            <div class="form-group">
+                <label class="form-label">Sick Leave (days remaining)</label>
+                <input type="number" id="adjustSick" class="form-control" min="0" max="365">
+            </div>
+            <div class="form-group">
+                <label class="form-label">Paid Leave (days remaining)</label>
+                <input type="number" id="adjustPaid" class="form-control" min="0" max="365">
+            </div>
+            <div class="form-group">
+                <label class="form-label">Reason for Adjustment <span style="color:var(--danger)">*</span></label>
+                <textarea id="adjustReason" class="form-control" rows="3"
+                    placeholder="e.g. Annual quota reset, correcting entry error…"></textarea>
+            </div>
+            <div style="display:flex;gap:12px;margin-top:8px">
+                <button class="btn btn-primary" onclick="submitAdjust()">Save Changes</button>
+                <button class="btn btn-ghost" onclick="closeAdjustModal()">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            document.querySelectorAll('.adjust-btn').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    openAdjust(
+                        btn.dataset.id,
+                        btn.dataset.name,
+                        btn.dataset.casual,
+                        btn.dataset.sick,
+                        btn.dataset.paid
+                    );
+                });
+            });
+        });
+
+        function openAdjust(empId, empName, casual, sick, paid) {
+
+            document.getElementById('adjustEmployeeId').value = empId;
+            document.getElementById('adjustModalTitle').textContent = 'Adjust Leave Balance – ' + empName;
+            document.getElementById('adjustCasual').value = casual;
+            document.getElementById('adjustSick').value = sick;
+            document.getElementById('adjustPaid').value = paid;
+            document.getElementById('adjustReason').value = '';
+            document.getElementById('adjustModal').classList.add('open');
+        }
+
+        function closeAdjustModal() {
+            document.getElementById('adjustModal').classList.remove('open');
+        }
+
+        async function submitAdjust() {
+            const empId = document.getElementById('adjustEmployeeId').value;
+            const casual = document.getElementById('adjustCasual').value;
+            const sick = document.getElementById('adjustSick').value;
+            const paid = document.getElementById('adjustPaid').value;
+            const reason = document.getElementById('adjustReason').value.trim();
+
+            if (!reason) { alert('Please provide a reason for the adjustment.'); return; }
+
+            let url = `/api/admin/leaves/balance/${empId}?reason=${encodeURIComponent(reason)}`;
+            if (casual !== '') url += `&casualLeave=${casual}`;
+            if (sick !== '') url += `&sickLeave=${sick}`;
+            if (paid !== '') url += `&paidLeave=${paid}`;
+
+            const res = await fetch(url, { method: 'PUT', headers: getAuthHeaders() });
+            if (res.ok) {
+                alert('Leave balance updated successfully.');
+                location.reload();
+            } else {
+                const d = await res.json().catch(() => ({}));
+                alert(d.message || 'Error updating leave balance.');
+            }
+        }
+
+        function getAuthHeaders() {
+            const t = document.cookie.split(';').map(c => c.trim()).find(c => c.startsWith('JWT_TOKEN='))?.split('=')[1];
+            return t ? { 'Authorization': 'Bearer ' + t } : {};
+        }
+        function logout() { document.cookie = 'JWT_TOKEN=;expires=Thu,01 Jan 1970'; window.location.href = '/login'; }
+        function toggleSidebar() { document.getElementById('sidebar').classList.toggle('open'); }
+    </script>
+</body>
+
+</html>

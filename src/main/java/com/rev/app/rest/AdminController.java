@@ -40,7 +40,7 @@ public class AdminController {
     private final LeaveBalanceRepository leaveBalanceRepository;
     private final AnnouncementRepository announcementRepository;
 
-    // ===================== EMPLOYEE MANAGEMENT =====================
+
 
     @GetMapping("/employees")
     public ResponseEntity<List<EmployeeDTO>> getAllEmployees(@RequestParam(required = false) String search) {
@@ -84,7 +84,7 @@ public class AdminController {
         return ResponseEntity.ok("Manager updated");
     }
 
-    // ===================== LEAVE BALANCE MANAGEMENT =====================
+
 
     @GetMapping("/leaves/balance/{employeeId}")
     public ResponseEntity<LeaveBalance> getLeaveBalance(@PathVariable Long employeeId) {
@@ -112,7 +112,7 @@ public class AdminController {
         return ResponseEntity.ok(balance);
     }
 
-    // ===================== DEPARTMENTS =====================
+
 
     @GetMapping("/departments")
     public ResponseEntity<List<Department>> getDepartments() {
@@ -142,7 +142,7 @@ public class AdminController {
         return ResponseEntity.ok("Department deleted");
     }
 
-    // ===================== DESIGNATIONS =====================
+
 
     @GetMapping("/designations")
     public ResponseEntity<List<Designation>> getDesignations() {
@@ -172,7 +172,7 @@ public class AdminController {
         return ResponseEntity.ok("Designation deleted");
     }
 
-    // ===================== ANNOUNCEMENTS =====================
+
 
     @GetMapping("/announcements")
     public ResponseEntity<List<AnnouncementDTO>> getAnnouncements() {
@@ -208,7 +208,7 @@ public class AdminController {
         return ResponseEntity.ok("Announcement removed");
     }
 
-    // ===================== AUDIT LOGS =====================
+
 
     @GetMapping("/audit-logs")
     public ResponseEntity<List<AuditLogDTO>> getAuditLogs() {

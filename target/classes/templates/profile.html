@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="en"
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>My Profile – RevWorkforce</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" th:href="@{/css/app.css}">
+</head>
+
+<body>
+<div class="layout">
+
+    <!-- SIDEBAR -->
+    <aside class="sidebar" id="sidebar">
+        <div class="sidebar-brand">
+            <h1>RevWorkforce</h1>
+            <p>HR Management</p>
+        </div>
+
+        <nav class="sidebar-nav">
+            <a class="nav-link" th:href="@{/dashboard}">
+                <span class="icon">🏠</span>Dashboard
+            </a>
+
+            <a class="nav-link active" th:href="@{/profile}">
+                <span class="icon">👤</span>My Profile
+            </a>
+
+            <a class="nav-link" th:href="@{/directory}">
+                <span class="icon">📋</span>Directory
+            </a>
+
+            <a class="nav-link" th:href="@{/notifications}">
+                <span class="icon">🔔</span>Notifications
+                <span class="nav-badge"
+                      th:if="${unreadCount > 0}"
+                      th:text="${unreadCount}"></span>
+            </a>
+
+            <div class="nav-label" style="margin-top:8px">Leave</div>
+
+            <a class="nav-link" th:href="@{/leaves}">
+                <span class="icon">📅</span>My Leaves
+            </a>
+        </nav>
+
+        <div class="sidebar-footer">
+            <button class="btn-logout" onclick="logout()">Sign Out</button>
+        </div>
+    </aside>
+
+    <!-- MAIN CONTENT -->
+    <main class="main-content">
+        <div class="topbar">
+            <div class="d-flex align-center gap-12">
+                <button class="sidebar-toggle" onclick="toggleSidebar()">☰</button>
+                <h2>My Profile</h2>
+            </div>
+        </div>
+
+        <div class="page-content">
+            <div style="display:grid;grid-template-columns:320px 1fr;gap:24px">
+
+                <!-- PROFILE CARD -->
+                <div class="card" style="height:fit-content">
+                    <div style="text-align:center;padding:16px 0">
+
+                        <div style="width:80px;height:80px;border-radius:50%;
+                                    background:linear-gradient(135deg,var(--primary),var(--accent));
+                                    display:inline-flex;align-items:center;justify-content:center;
+                                    font-size:2rem;font-weight:700;color:white;margin-bottom:12px"
+                             th:text="${#strings.substring(employee.name,0,1)}">
+                            A
+                        </div>
+
+                        <div class="fw-700"
+                             style="font-size:1.1rem"
+                             th:text="${employee.name}">
+                            Name
+                        </div>
+
+                        <div class="text-muted fs-sm"
+                             th:text="${employee.email}">
+                            email
+                        </div>
+
+                        <div style="margin-top:12px;display:flex;justify-content:center;gap:8px">
+
+                            <!-- ROLE BADGE (FIXED) -->
+                            <span class="badge"
+                                  th:classappend="${
+                                      employee.role.name() == 'ADMIN' ? 'badge-admin' :
+                                      employee.role.name() == 'MANAGER' ? 'badge-manager' :
+                                      'badge-employee'
+                                  }"
+                                  th:text="${employee.role}">
+                                ROLE
+                            </span>
+
+                            <!-- STATUS BADGE (FIXED) -->
+                            <span class="badge"
+                                  th:classappend="${
+                                      employee.status.name() == 'ACTIVE'
+                                      ? 'badge-active'
+                                      : 'badge-inactive'
+                                  }"
+                                  th:text="${employee.status}">
+                                ACTIVE
+                            </span>
+
+                        </div>
+                    </div>
+
+                    <hr style="border-color:var(--border);margin:12px 0">
+
+                    <div style="display:flex;flex-direction:column;gap:10px">
+
+                        <div class="d-flex justify-between">
+                            <span class="text-muted fs-sm">Department</span>
+                            <span class="fs-sm fw-600"
+                                  th:text="${employee.department?.deptName ?: '-'}">-</span>
+                        </div>
+
+                        <div class="d-flex justify-between">
+                            <span class="text-muted fs-sm">Designation</span>
+                            <span class="fs-sm fw-600"
+                                  th:text="${employee.designation?.desigName ?: '-'}">-</span>
+                        </div>
+
+                        <div class="d-flex justify-between">
+                            <span class="text-muted fs-sm">Joining Date</span>
+                            <span class="fs-sm fw-600"
+                                  th:text="${employee.joiningDate ?: '-'}">-</span>
+                        </div>
+
+                        <div class="d-flex justify-between">
+                            <span class="text-muted fs-sm">Manager</span>
+                            <span class="fs-sm fw-600"
+                                  th:text="${employee.manager?.name ?: 'None'}">-</span>
+                        </div>
+
+                    </div>
+                </div>
+
+                <!-- EDIT PROFILE -->
+                <div class="card">
+                    <div class="card-title mb-16">✏️ Update Profile</div>
+
+                    <div id="profileAlert" class="alert" style="display:none"></div>
+
+                    <div class="form-section">
+                        <div class="form-section-title">Contact Information</div>
+
+                        <div class="form-group">
+                            <label class="form-label">Phone Number</label>
+                            <input id="phone"
+                                   type="tel"
+                                   class="form-control"
+                                   th:value="${employee.phone}"
+                                   placeholder="+91 99999 99999">
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label">Address</label>
+                            <textarea id="address"
+                                      class="form-control"
+                                      th:text="${employee.address}"
+                                      placeholder="Your current address"></textarea>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label">Emergency Contact</label>
+                            <input id="emergencyContact"
+                                   type="text"
+                                   class="form-control"
+                                   th:value="${employee.emergencyContact}"
+                                   placeholder="Name & phone number">
+                        </div>
+                    </div>
+
+                    <div class="form-section">
+                        <div class="form-section-title">Change Password (optional)</div>
+
+                        <div class="form-group">
+                            <label class="form-label">Current Password</label>
+                            <input id="currentPassword"
+                                   type="password"
+                                   class="form-control"
+                                   placeholder="Current password">
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label">New Password</label>
+                            <input id="newPassword"
+                                   type="password"
+                                   class="form-control"
+                                   placeholder="New password (min 6 chars)">
+                        </div>
+                    </div>
+
+                    <button class="btn btn-primary"
+                            onclick="updateProfile()">Save Changes</button>
+                </div>
+
+            </div>
+        </div>
+    </main>
+</div>
+
+<script>
+    async function updateProfile() {
+        const body = {
+            phone: document.getElementById('phone').value,
+            address: document.getElementById('address').value,
+            emergencyContact: document.getElementById('emergencyContact').value,
+            currentPassword: document.getElementById('currentPassword').value,
+            newPassword: document.getElementById('newPassword').value
+        };
+
+        const res = await fetch('/api/employees/me', {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json',
+                ...getAuthHeaders()
+            },
+            body: JSON.stringify(body)
+        });
+
+        const el = document.getElementById('profileAlert');
+
+        if (res.ok) {
+            el.className = 'alert alert-success';
+            el.textContent = 'Profile updated!';
+        } else {
+            const d = await res.json();
+            el.className = 'alert alert-danger';
+            el.textContent = d.message || 'Error';
+        }
+
+        el.style.display = 'block';
+    }
+
+    function getAuthHeaders() {
+        const t = document.cookie.split(';')
+            .map(c => c.trim())
+            .find(c => c.startsWith('JWT_TOKEN='))
+            ?.split('=')[1];
+        return t ? { 'Authorization': 'Bearer ' + t } : {};
+    }
+
+    function logout() {
+        document.cookie = 'JWT_TOKEN=;expires=Thu,01 Jan 1970';
+        window.location.href = '/login';
+    }
+
+    function toggleSidebar() {
+        document.getElementById('sidebar').classList.toggle('open');
+    }
+</script>
+
+</body>
+</html>

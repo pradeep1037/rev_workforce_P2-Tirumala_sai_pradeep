@@ -2,6 +2,7 @@ package com.rev.app.repository;
 
 import com.rev.app.entity.LeaveBalance;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
 import java.util.Optional;
@@ -12,4 +13,7 @@ public interface LeaveBalanceRepository extends JpaRepository<LeaveBalance, Long
     Optional<LeaveBalance> findByEmployeeEmployeeId(Long employeeId);
 
     List<LeaveBalance> findByEmployeeManagerEmployeeId(Long managerId);
+
+    @Query("SELECT lb FROM LeaveBalance lb JOIN FETCH lb.employee ORDER BY lb.employee.name")
+    List<LeaveBalance> findAllWithEmployee();
 }

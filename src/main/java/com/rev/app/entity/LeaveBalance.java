@@ -1,5 +1,6 @@
 package com.rev.app.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -17,6 +18,7 @@ public class LeaveBalance {
     @Column(name = "LEAVE_BALANCE_ID")
     private Long leaveBalanceId;
 
+    @JsonIgnore
     @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "EMPLOYEE_ID", unique = true, nullable = false)
     private Employee employee;

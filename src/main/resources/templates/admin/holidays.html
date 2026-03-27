@@ -1,0 +1,341 @@
+<!DOCTYPE html>
+
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>Holidays – RevWorkforce</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" th:href="@{/css/app.css}">
+</head>
+
+<body>
+
+<div class="layout">
+
+    <aside class="sidebar" id="sidebar">
+        <div class="sidebar-brand">
+            <h1>RevWorkforce</h1>
+            <p>Admin Panel</p>
+        </div>
+
+        <nav class="sidebar-nav">
+            <a class="nav-link" th:href="@{/dashboard}"><span class="icon">🏠</span>Dashboard</a>
+
+            <div class="nav-label" style="margin-top:8px">Administration</div>
+
+            <a class="nav-link" th:href="@{/admin/employees}">
+                <span class="icon">🏢</span>Employees
+            </a>
+
+            <a class="nav-link" th:href="@{/admin/departments}">
+                <span class="icon">⚙️</span>Departments
+            </a>
+
+            <a class="nav-link" th:href="@{/admin/leaves}">
+                <span class="icon">📑</span>All Leaves
+            </a>
+
+            <a class="nav-link active" th:href="@{/admin/holidays}">
+                <span class="icon">🌴</span>Holidays
+            </a>
+
+            <a class="nav-link" th:href="@{/admin/announcements}">
+                <span class="icon">📢</span>Announcements
+            </a>
+
+            <a class="nav-link" th:href="@{/admin/audit-logs}">
+                <span class="icon">🔍</span>Audit Logs
+            </a>
+
+            <a class="nav-link" th:href="@{/admin/reports}">
+                <span class="icon">📊</span>Reports
+            </a>
+
+        </nav>
+
+        <div class="sidebar-footer">
+            <button class="btn-logout" onclick="logout()">Sign Out</button>
+        </div>
+    </aside>
+
+    <main class="main-content">
+
+        <div class="topbar">
+
+            <div class="d-flex align-center gap-12">
+                <button class="sidebar-toggle" onclick="toggleSidebar()">☰</button>
+                <h2>Holiday Management</h2>
+            </div>
+
+            <button class="btn btn-primary btn-sm" onclick="openAddHolidayModal()">➕ Add Holiday</button>
+
+        </div>
+
+        <div class="page-content">
+
+            <div class="card">
+
+                <div class="table-wrapper">
+
+                    <table>
+
+                        <thead>
+                        <tr>
+                            <th>Holiday Name</th>
+                            <th>Date</th>
+                            <th>Actions</th>
+                        </tr>
+                        </thead>
+
+                        <tbody>
+
+                        <tr th:if="${#lists.isEmpty(holidays)}">
+                            <td colspan="3" style="text-align:center;color:var(--text-muted);padding:32px">
+                                No holidays configured.
+                            </td>
+                        </tr>
+
+                        <tr th:each="h : ${holidays}">
+
+                            <td class="fw-600" th:text="${h.holidayName}">-</td>
+
+                            <td th:text="${h.holidayDate}">-</td>
+
+                            <td>
+
+                                <div style="display:flex;gap:4px">
+
+                                    <button class="btn btn-primary btn-xs"
+                                            th:data-id="${h.holidayId}"
+                                            th:data-name="${h.holidayName}"
+                                            th:data-date="${h.holidayDate}"
+                                            onclick="editHoliday(this)">
+                                        Edit </button>
+
+                                    <button class="btn btn-danger btn-xs"
+                                            th:data-id="${h.holidayId}"
+                                            onclick="deleteHoliday(this.dataset.id)">
+                                        Delete </button>
+
+                                </div>
+
+                            </td>
+
+                        </tr>
+
+                        </tbody>
+                    </table>
+
+                </div>
+            </div>
+        </div>
+    </main>
+</div>
+
+<!-- Holiday Modal -->
+
+<div class="modal-overlay" id="holidayModal">
+
+    <div class="modal" style="max-width:400px;">
+
+        <div class="modal-header">
+            <div class="modal-title" id="holidayModalTitle">Add Holiday</div>
+
+            <button class="modal-close"
+                    onclick="document.getElementById('holidayModal').classList.remove('open')">
+                ✕ </button>
+
+        </div>
+
+        <div id="holidayAlert" class="alert" style="display:none"></div>
+
+        <input type="hidden" id="holidayId">
+
+        <div class="form-row">
+            <div class="form-group">
+                <label class="form-label">Holiday Name *</label>
+                <input id="holidayName" type="text" class="form-control" placeholder="e.g. New Year">
+            </div>
+        </div>
+
+        <div class="form-row">
+            <div class="form-group">
+                <label class="form-label">Date *</label>
+                <input id="holidayDate" type="date" class="form-control">
+            </div>
+        </div>
+
+        <div style="display:flex;gap:12px;margin-top:8px">
+            <button class="btn btn-primary" onclick="saveHoliday()">Save</button>
+
+            <button class="btn btn-ghost"
+                    onclick="document.getElementById('holidayModal').classList.remove('open')">
+                Cancel </button>
+
+        </div>
+
+    </div>
+</div>
+
+<script>
+
+    function openAddHolidayModal(){
+
+    document.getElementById('holidayModalTitle').innerText='Add Holiday';
+
+    document.getElementById('holidayId').value='';
+
+    document.getElementById('holidayName').value='';
+
+    document.getElementById('holidayDate').value='';
+
+    document.getElementById('holidayAlert').style.display='none';
+
+    document.getElementById('holidayModal').classList.add('open');
+
+    }
+
+
+
+    function openEditHolidayModal(id,name,date){
+
+    document.getElementById('holidayModalTitle').innerText='Edit Holiday';
+
+    document.getElementById('holidayId').value=id;
+
+    document.getElementById('holidayName').value=name;
+
+    document.getElementById('holidayDate').value=date;
+
+    document.getElementById('holidayAlert').style.display='none';
+
+    document.getElementById('holidayModal').classList.add('open');
+
+    }
+
+
+
+    function editHoliday(btn){
+
+    const id=btn.dataset.id;
+
+    const name=btn.dataset.name;
+
+    const date=btn.dataset.date;
+
+    openEditHolidayModal(id,name,date);
+
+    }
+
+
+
+    async function saveHoliday(){
+
+    const id=document.getElementById('holidayId').value;
+
+    const name=document.getElementById('holidayName').value;
+
+    const date=document.getElementById('holidayDate').value;
+
+    if(!name||!date){
+
+    const el=document.getElementById('holidayAlert');
+
+    el.className='alert alert-danger';
+
+    el.textContent='Name and Date are required.';
+
+    el.style.display='block';
+
+    return;
+
+    }
+
+
+
+    const url=new URL(window.location.origin+`/api/leaves/holidays${id?'/'+id:''}`);
+
+    url.searchParams.append('name',name);
+
+    url.searchParams.append('date',date);
+
+    const method=id?'PUT':'POST';
+
+    const res=await fetch(url,{method:method,headers:getAuthHeaders()});
+
+    if(res.ok){
+
+    location.reload();
+
+    }else{
+
+    const d=await res.json();
+
+    const el=document.getElementById('holidayAlert');
+
+    el.className='alert alert-danger';
+
+    el.textContent=d.message||'Error occurred';
+
+    el.style.display='block';
+
+    }
+
+    }
+
+
+
+    async function deleteHoliday(id){
+
+    if(!confirm('Are you sure you want to delete this holiday?'))return;
+
+    const res=await fetch(`/api/leaves/holidays/${id}`,{method:'DELETE',headers:getAuthHeaders()});
+
+    if(res.ok){
+
+    location.reload();
+
+    }else{
+
+    const d=await res.json();
+
+    alert(d.message||'Error deleting holiday');
+
+    }
+
+    }
+
+
+
+    function getAuthHeaders(){
+
+    const t=document.cookie.split(';').map(c=>c.trim()).find(c=>c.startsWith('JWT_TOKEN='))?.split('=')[1];
+
+    return t?{'Authorization':'Bearer '+t}:{};
+
+    }
+
+
+
+    function logout(){
+
+    document.cookie='JWT_TOKEN=;expires=Thu,01 Jan 1970';
+
+    window.location.href='/login';
+
+    }
+
+
+
+    function toggleSidebar(){
+
+    document.getElementById('sidebar').classList.toggle('open');
+
+    }
+
+</script>
+
+</body>
+</html>

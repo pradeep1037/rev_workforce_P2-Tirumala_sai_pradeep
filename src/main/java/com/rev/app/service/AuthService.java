@@ -76,4 +76,25 @@ public class AuthService implements IAuthService {
                 return employeeRepository.findByEmail(email)
                                 .orElseThrow(() -> new BadRequestException("Current user not found"));
         }
+
+        public String getSecurityQuestion(String email) {
+                Employee employee = employeeRepository.findByEmail(email)
+                                .orElseThrow(() -> new BadRequestException("Employee not found"));
+                if (employee.getSecurityQuestion() == null || employee.getSecurityQuestion().isEmpty()) {
+                        throw new BadRequestException("No security question set for this account. Please contact administrator.");
+                }
+                return employee.getSecurityQuestion();
+        }
+
+        public void resetPassword(String email, String answer, String newPassword) {
+                Employee employee = employeeRepository.findByEmail(email)
+                                .orElseThrow(() -> new BadRequestException("Employee not found"));
+
+                if (employee.getSecurityAnswer() == null || !employee.getSecurityAnswer().equalsIgnoreCase(answer.trim())) {
+                        throw new BadRequestException("Incorrect security answer");
+                }
+
+                employee.setPassword(passwordEncoder.encode(newPassword));
+                employeeRepository.save(employee);
+        }
 }
